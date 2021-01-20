@@ -1,0 +1,158 @@
+---
+title: "Influence of UV irradiation on cSCC progression/metastasis assessed by epigenetic changes (miRNAs)"
+output:
+  html_notebook:
+    theme: united
+    toc: yes
+author: Marc Bender
+---
+
+# Preamble
+
+This document serves as a summary of the data analysis conducted during my PhD thesis. It is structured chronologically to emphasize decision making based on the previous results. The basic question was if UV radiation influences tumor growth beyond initiation e.g. by induction of genomic changes or epigenetic alterations resulting in tumor progression and metastasis of cutaneous squamous cell carcinoma (cSCC). Data is available at: https://github.com/MBender1992/PhD/blob/Marc/200619_chronic_irr_normalized.csv
+
+### Loading of required packages
+
+```{r}
+# data wrangling and basic visualization
+library(tidyverse)
+library(ggpubr)
+# pipe-friendly statistics
+library(rstatix)
+# Heatmap
+library(ComplexHeatmap)
+# PCA
+library(FactoMineR)
+library(factoextra)
+```
+
+
+# 1. Screening for UV induced miRNAs
+## 1.1 Experimental setup and data ingestion
+
+In a first step we screened 51 manually curated miRNAs associated with cSCC or other epithelial tumors for UV induced changes. To this end, five different cancer cell lines (Met-1, Met-4, SCC-12, SCC-13, SCL-II) were grown under standard cell culture conditions with DMEM (Met-1,Met-4, SCL-II) or FAD (SCC-12, SCC-13) as cell culture media. Cells were grown to 80 % confluency and exposed to 103 kJ/m² (physical doses: 246.01 J/m² UVB (280-315 nm); 12.50 kJ/m² UVA (315-400 nm); 28.03 kJ/m² VIS (400-750 nm); 61.74 kJ/m² IR-A (750-1200 nm)) sunlight-equivalent radiation (SER) with a custom-built irradiation device (KAUVIR: https://www.fona.de/de/massnahmen/foerdermassnahmen/strahlenforschung.php). 
+
+After irradiation, cells were harvested and subjected to FirePlex immunoassay (abcam;  https://www.abcam.com/nav/multiplex-assays/fireplex-immunoassays) to detect changes in miRNA expression using barcode-labelled probes. Data was imported to the complimentary workbench software and normalized to the 12 most stable miRNAs using the built-in algorithm.
+
+
+```{r}
+normalizers <- c("miR-23a-3p","miR-23b-3p", "miR-24-3p", "miR-26a-3p", "miR-30b-3p", "miR-22-3p", "miR-16-5p", "miR-221-3p", "miR-15a-3p", "miR-29a-3p", "let-7f-5p", "miR-29c-3p")
+```
+   
+Subsequently, data was imported into R using the following function, to exclude miRNAs with a median expression below an arbitrary threshold, convert data from wide to tidy data and add a column with log2-transformed values as expression data follows a log-normal distribution (Beal 2017, https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7991639) :   
+
+```{r}
+load_Fireplex_data_PhD <- function(filename = "200619_chronic_irr_normalized.csv", threshold)
+{
+  # check if required package is installed and load it
+  if (!require(dplyr)) install.packages("dplyr")
+  library(dplyr)
+  
+  #load data and change hyphens to underscores so r does not confuse a hyphen with minus
+  dat <- read_csv(filename)
+  names(dat) <- str_replace_all(names(dat), "-","_")
+  # clean up the data, convert to tidy format and replace negative expression values with 0 as expression        cannot be negative
+  dat_f <- dat %>% 
+    select(-Messung) %>%
+    filter(cell_line != "HaCaT") %>%
+    gather(miRNA, expression, -c(ID,cell_line, Irradiation)) %>% 
+    mutate(expression = ifelse(expression < 0, 0, expression))  
+  # index miRNAs with a median expression below the threshold
+  ind <- dat_f %>%
+    group_by(miRNA) %>%
+    filter(median(expression, na.rm=TRUE) <= threshold) %>%
+    .$miRNA %>% 
+    unique() 
+  # omit indexed miRNAs and add log2-transformed expression values 
+  dat_f %>% 
+    filter(!miRNA %in% ind) %>%
+    mutate(log_exp = log2(expression+1)) %>%
+    mutate(miRNA = str_replace_all(miRNA, "hsa_", "")) %>%
+    mutate(miRNA = str_replace_all(miRNA, "_","-")) %>%
+    mutate(cell_line = str_replace_all(cell_line, "-","_"))
+}
+
+dat <-  load_Fireplex_data_PhD(threshold = 2.5)
+```
+
+The threshold was set to 2.5 (a.u.) as this is the detection limit of the assay as indicated by the manufacturers instructions. 
+
+## 1.2 Principal component analysis (PCA)
+
+Afterwards, data was analyzed for general changes between cell lines. As explorative analysis,PCA was chosen as it breaks down multidimensional data and facilitates visualization of the underlying data structure. 
+
+```{r}
+# transform data for the format required by "PCA"
+dat_PCA <- dat %>% 
+  select(-c(expression)) %>%
+  spread(miRNA, log_exp) %>%
+  mutate(cell_line = str_replace_all(cell_line, "_","-"))
+
+# scale data and perform PCA
+res.pca <- PCA(dat_PCA[, -c(1:3)],  scale.unit = T, ncp = 5, graph = F)
+
+# extract results and chose which PCs to use
+eig.val <- get_eigenvalue(res.pca)
+
+head(eig.val)
+
+```
+
+As shown above, when using three dimensions, the analysis is able to explain more than 70 % of the variance in the data. As we add more dimensions the explanation improves, naturally, however for visualization reasons and the complexity of imagining more than three dimensions, only the comparison of PC1 vs PC2, PC1 vs PC3 and PC2 vs PC3 are shown (Fig. 1).  
+
+```{r}
+fviz_pca_ind(
+  res.pca,
+  geom.ind = "point",
+  fill.ind = dat_PCA$cell_line,
+  col.ind = "black",
+  pointshape = 21, 
+  pointsize = dat_PCA$Irradiation,
+  palette = "jco",
+  addEllipses = T,
+  axes = c(1, 2),
+  # Variables
+  alpha.var =0.5,
+  mean.point = F,
+  ellipse.level=0.8,
+  legend.title = list(fill = "Cell line")
+) + 
+  scale_size_manual(values = c(2,4))
+```
+![Fig. 1: PCA of the irradiated cell lines Met-1, Met-4, SCC-12, SCC-13, SCL-II. Large circles show irradiated samples, small circles indicate control samples. Dim1 is equivalent to Principal Component 1 (PC1), etc. Ellipses are drawn around the respective cell lines for illustration. The variance explained is shown in parentheses. NOTE: The code above only shows the plot for PC1 vs PC2 (axes = c(1,2)). The image was generated by saving the 3 different images (A: PC1 vs PC2,B: PC1 vs PC3,C: PC2 vs PC3) and combining them in power point. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/PCA_combined.png?token=APR4AR5X55R33WWW2GKIBF3ABBDIU)
+
+
+A separation of SCC-12/SCC-13 and Met-1/Met-4 is evident along the PC1 axis, PC2 separates SCL-II from all other cell lines. Within clusters (ellipses) irradiated cells (big circles) form subclusters in the PC1 vs PC2 plot as well as in the PC2 vs PC3 plot in all cell lines and in the PC1 vs PC3 plot in Met-4, SCC-13, and SCL-II. However the irradiation effects are not as pronounced as the cell line effects indicating a larger difference in the miRNA expression between cell lines than between treated and control cells. 
+
+To further investigate the overall irradiation effect a second PCA plot has been drawn to emphasize differences in irradiated and control cells (Fig. 2).
+
+```{r}
+fviz_pca_biplot(
+  res.pca,
+  # Fill individuals by groups
+  geom.ind = "point",
+  pointshape = 21,
+  pointsize = 2.5,
+  fill.ind = dat_PCA$Irradiation,
+  col.ind = "black",
+  palette = "jco",
+  # Color variable by groups
+  col.var = "cos2",
+  alpha.var = 0.3,
+  axes = c(1,2),
+  addEllipses = T,
+  ellipse.level=0.8,
+  legend.title = list(fill = "Irradiation", color = "quality of representation"),
+  repel = TRUE        # Avoid label overplotting
+)+ 
+  scale_size_manual(values = c(2,4))
+```
+![Fig. 2: PCA of the irradiated cell lines Met-1, Met-4, SCC-12, SCC-13, SCL-II. Large circles represent the mean. Dim1 is equivalent to Principal Component 1 (PC1), etc. Ellipses are drawn around the treatment conditions. Arrows indicate correlation of miRNA with the respective Principal Component. miRNAs sharing a similar angle in the plot are positively correlated, miRNAs with orthogonal arrows are uncorrelated and miRNAs with an angle of 180° are negatively correlated. The variance explained is shown in parentheses. NOTE: The code above only shows the plot for PC1 vs PC2 (axes = c(1,2)). The image was generated by saving the 3 different images (A: PC1 vs PC2,B: PC1 vs PC3,C: PC2 vs PC3) and combining them in power point. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/PCA_combined_irradiation.png?token=APR4AR677BKP3PENZWR2RNTABBDG4)
+
+
+
+
+
+
+
+
