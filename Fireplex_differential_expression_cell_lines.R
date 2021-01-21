@@ -1,5 +1,9 @@
 ##Pr#ambel
-setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/base_scripts")
+if(str_detect(getwd(), "C:/Marc")){
+  setwd("C:/Marc/Arbeit/R/base_scripts")
+} else{
+  setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/base_scripts")
+}
 
 #loading custom functions
 source("R_functions.R")
