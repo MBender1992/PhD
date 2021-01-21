@@ -1,14 +1,4 @@
 ##Pr#ambel
-if(str_detect(getwd(), "C:/Marc")){
-  setwd("C:/Marc/Arbeit/R/base_scripts")
-} else{
-  setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/base_scripts")
-}
-
-#loading custom functions
-source("R_functions.R")
-# source("R_functions_PhD.R")
-
 library(tidyverse)
 library(ggpubr)
 library(rstatix)
@@ -19,6 +9,17 @@ library(ComplexHeatmap)
 library(circlize)
 library(factoextra)
 library(FactoMineR)
+
+
+if(str_detect(getwd(), "C:/")){
+  setwd("C:/Marc/Arbeit/R/base_scripts")
+} else{
+  setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/base_scripts")
+}
+
+#loading custom functions
+source("R_functions.R")
+
 
 # set working directory depending on location
 if(str_detect(getwd(), "C:/Marc")){
