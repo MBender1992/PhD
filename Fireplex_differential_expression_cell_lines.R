@@ -20,7 +20,12 @@ library(circlize)
 library(factoextra)
 library(FactoMineR)
 
-setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/PhD/Daten")
+# set working directory depending on location
+if(str_detect(getwd(), "C:/Marc")){
+  setwd("C:/Marc/Arbeit/R/PhD/Daten")
+} else{
+  setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/PhD/Daten")
+}
 
 #load data
 filename <- "200619_chronic_irr_normalized.csv"
