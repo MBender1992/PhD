@@ -1,4 +1,4 @@
-##Pr#ambel
+##Präambel
 library(tidyverse)
 library(ggpubr)
 library(rstatix)
@@ -29,9 +29,8 @@ if(str_detect(getwd(), "C:/Marc")){
 }
 
 #load data
-filename <- "200619_chronic_irr_normalized.csv"
-dat <-  load_Fireplex_data_PhD(threshold = 2.5)
-
+url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/200619_chronic_irr_normalized.csv" 
+dat <-  load_Fireplex_data_PhD(filename = url(urlfile), threshold = 2.5)
 
 
 ###################
