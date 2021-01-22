@@ -223,8 +223,6 @@ FC_cell_lines <- sapply(cols, y=min(cols)-1, data = dat_wide, function(data,x,y)
   log2() %>%
   cbind(dat_wide,.)
 
-
-
 # filter rows for fold-changes > 1.5  
 FC_cell_lines[apply(FC_cell_lines[, -c(1:7)], MARGIN = 1, function(x) any(abs(x) > log2(1.5))), ]
 
