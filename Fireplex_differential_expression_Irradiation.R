@@ -1,22 +1,15 @@
-##Pr#ambel
-setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/base_scripts")
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+library(agricolae)
+library(devtools)
 
-#loading custom functions
-source("R_functions.R")
-# source("R_functions_PhD.R")
-
-library("tidyverse")
-library("ggpubr")
-library("rstatix")
-library("EnvStats")
-library("data.table")
-library("agricolae")
-
-setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/PhD/Daten")
+# source R functions
+source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
 
 #load data
-filename <- "200619_chronic_irr_normalized.csv"
-dat <-  load_Fireplex_data_PhD(threshold = 2.5)
+url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/200619_chronic_irr_normalized.csv" 
+dat <-  load_Fireplex_data_PhD(filename = url(url_file), threshold = 2.5)
 
 
 ###################
@@ -25,10 +18,10 @@ dat <-  load_Fireplex_data_PhD(threshold = 2.5)
 
 # summary statistics 
 dat_summary <- dat %>% 
-  mutate(expression = expression +0.1) %>%
-  group_by(cell_line, Irradiation,miRNA) %>% 
-  summarize(geomean = geoMean(expression,na.rm=T),
-            geosd = geoSD(expression,na.rm=T))
+  group_by(cell_line, Irradiation,miRNA) %>%
+  summarize(mean = mean(log_exp, na.rm =T), sd = sd(log_exp))
+
+
 
 # visualize data
 dat %>% 
@@ -96,52 +89,63 @@ two_way_ANOVA <- dat%>%
   anova_test(log_exp ~ cell_line*Irradiation, white.adjust = T) %>%
   adjust_pvalue(method = "fdr")
 
-
 # significant interaction effect
-two_way_ANOVA_interaction <- two_way_ANOVA %>%
-  filter(Effect == "cell_line:Irradiation" & p.adj < 0.05) 
+two_way_interaction <- two_way_ANOVA %>%
+  filter(Effect == "cell_line:Irradiation" & p.adj < 0.05)%>%
+  pull(miRNA)
  
 # significant Irradiation main effect
-two_way_ANOVA_Irradiation <- two_way_ANOVA %>%
-  filter(Effect == "Irradiation" & p.adj < 0.05 & !miRNA %in% two_way_ANOVA_interaction$miRNA) 
+two_way_irradiation <- two_way_ANOVA %>%
+  filter(Effect == "Irradiation" & p.adj < 0.05 & !miRNA %in% two_way_interaction) %>%
+  pull(miRNA)
 
 
 ## Post-hoc Tests ................................................................................................
-# post-hoc-test for the interaction effect
-pwc_interaction <- dat%>%
-  group_by(miRNA,cell_line) %>%
-  pairwise_t_test(log_exp~Irradiation, pool.sd = F) %>% 
-  filter(p.adj < 0.05 & miRNA %in% two_way_ANOVA_interaction$miRNA) 
-
-
-# post-hoc-test for the Irradiation effect
-pwc_Irradiation <- dat%>%
-  group_by(miRNA,cell_line) %>%
-  pairwise_t_test(log_exp~Irradiation, pool.sd = F) %>% 
-  filter(p.adj < 0.05 & miRNA %in% two_way_ANOVA_Irradiation$miRNA) 
 
 
 
 
-## Differential expression..........................................................................................
+
+
+
+
+## Interaction effect..........................................................................................
 # calculate fold changes
-folds <- dat_summary %>% 
+folds <-  dat_summary %>% 
   group_by(cell_line,  miRNA) %>% 
-  summarize(FC = geomean[Irradiation == "KAUVIR"]/geomean[Irradiation == "control"]) %>%
-  mutate(logFC = log2(FC))
+  summarize(FC = mean[Irradiation == "KAUVIR"] - mean[Irradiation == "control"]) %>% 
+  setNames(c("cell_line", "miRNA", "log2FC"))
+
+# t-test for the interaction effect
+pwc_interaction <- dat %>%
+  group_by(miRNA,cell_line) %>%
+  pairwise_t_test(log_exp~Irradiation, pool.sd = F) %>% 
+  filter(p < 0.05 & miRNA %in% two_way_interaction) 
+
 
 #calculate differential expression for interaction
 diff_expr_interaction <- pwc_interaction %>%
   inner_join(folds) %>%
-  select(miRNA, cell_line, p.adj, p.adj, FC,logFC) %>% 
-  filter(abs(logFC) > log2(1.5))
+  select(miRNA, cell_line, p.adj, p.adj, log2FC) %>% 
+  filter(abs(log2FC) > log2(1.5))
+
+
+
+
+
+## Irradiation effect..........................................................................................
+
+# post-hoc-test for the Irradiation effect
+pwc_irradiation <- dat%>%
+  group_by(miRNA,cell_line) %>%
+  pairwise_t_test(log_exp~Irradiation, pool.sd = F) %>% 
+  filter(p < 0.05 & miRNA %in% two_way_irradiation) 
 
 #calculate differential expression for Irradiation
-diff_expr_Irradiation <- pwc_Irradiation %>%
+diff_expr_irradiation <- pwc_irradiation %>%
   inner_join(folds) %>%
-  select(miRNA, cell_line, p.adj, p.adj, FC,logFC) %>% 
-  filter(abs(logFC) > log2(1.5))
-
+  select(miRNA, cell_line, p.adj, p.adj, log2FC) %>% 
+  filter(abs(log2FC) > log2(1.5))
 
 
 
