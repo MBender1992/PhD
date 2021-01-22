@@ -2,10 +2,11 @@
 library(tidyverse)
 library(ggpubr)
 library(rstatix)
-library(EnvStats)
+# library(EnvStats)
 library(ComplexHeatmap)
 library(factoextra)
 library(FactoMineR)
+library(circlize)
 
 
 if(str_detect(getwd(), "C:/")){
@@ -18,15 +19,15 @@ if(str_detect(getwd(), "C:/")){
 source("R_functions.R")
 
 
-# set working directory depending on location
-if(str_detect(getwd(), "C:/Marc")){
-  setwd("C:/Marc/Arbeit/R/PhD/Daten")
-} else{
-  setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/PhD/Daten")
-}
+# # set working directory depending on location
+# if(str_detect(getwd(), "C:/Marc")){
+#   setwd("C:/Marc/Arbeit/R/PhD/Daten")
+# } else{
+#   setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/PhD/Daten")
+# }
 
 #load data
-url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/200619_chronic_irr_normalized.csv" 
+url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/200619_chronic_irr_normalized.csv" 
 dat <-  load_Fireplex_data_PhD(filename = url(url_file), threshold = 2.5)
 
 
@@ -177,7 +178,7 @@ two_way_interaction <- two_way_ANOVA %>%
   filter(Effect == "cell_line:Irradiation" & p.adj < 0.05) %>%
   pull(miRNA)
 two_way_ANOVA %>% 
-  filter(!miRNA %in% two_way_interaction)%>% print(n="all")
+  filter(miRNA %in% two_way_interaction)%>% print(n="all")
 
 # show main effect
 two_way_main<- two_way_ANOVA %>%
@@ -206,10 +207,7 @@ one_way_ANOVA <- dat %>%
 pwc_cell_line <- dat %>%
   group_by(miRNA,Irradiation) %>%
   pairwise_t_test(log_exp~cell_line, pool.sd = F) %>% 
-  filter(p.adj < 0.05 & Irradiation == "control") %>% 
-  print(n="all")
-
-
+  filter(p.adj < 0.05 & Irradiation == "control")
 
 
 ## Differential expression..........................................................................................
@@ -253,7 +251,7 @@ FC_cell_lines[apply(FC_cell_lines[, -c(1:7)], MARGIN = 1, function(x) any(abs(x)
 
 # Heatmap  transform data for Heatmap format
 dat_Heatmap <- dat %>% 
-  filter(Irradiation == "control" & miRNA %in% pwc_cell_line$miRNA) %>%
+  filter(Irradiation == "control" & miRNA %in% one_way_ANOVA$miRNA) %>%
   select(-c(Irradiation, log_exp)) %>%
   spread(miRNA, expression) %>%
   mutate(cell_line = str_replace_all(cell_line, "_","-"))
@@ -315,7 +313,7 @@ Ht <- Heatmap(
     legend_width = unit(4, "cm")
     ))
 
-png("test.png", units="in", width=7.5, height=6, res=600)
+png("test.png", units="in", width=4, height=7, res=600)
 draw(Ht, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
 dev.off()
 

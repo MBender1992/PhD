@@ -27,6 +27,7 @@ library(ggpubr)
 library(rstatix)
 # Heatmap
 library(ComplexHeatmap)
+library(circlize)
 # PCA
 library(FactoMineR)
 library(factoextra)
@@ -48,7 +49,7 @@ normalizers
    
 Subsequently, data was imported into R using the following function, to exclude miRNAs with a median expression below an arbitrary threshold, convert data from wide to tidy data and add a column with log2-transformed values as expression data follows a log-normal distribution (Beal 2017, https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7991639) :   
 
-```{r}
+```{r, message = FALSE}
 load_Fireplex_data_PhD <- function(filename, threshold)
 {
   # check if required package is installed and load it
@@ -79,8 +80,9 @@ load_Fireplex_data_PhD <- function(filename, threshold)
     mutate(cell_line = str_replace_all(cell_line, "-","_"))
 }
 
-url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/200619_chronic_irr_normalized.csv" 
+url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/200619_chronic_irr_normalized.csv" 
 dat <-  load_Fireplex_data_PhD(filename = url(url_file), threshold = 2.5)
+dat
 ```
 
 The threshold was set to 2.5 (a.u.) as this is the detection limit of the assay as indicated by the manufacturers instructions. After applying this threshold 40 out of the intially 51 examined miRNAs remained in the analysis. 
@@ -180,35 +182,19 @@ No extreme outliers were present in the analysis. Testing for normality or homog
 * As explained in section 1.1, expression data follows a log-normal distribution, thus log-transformed values were used for statistical analysis 
 * To deal with possible heterogeneity of variances, ANOVA with heteroscedasticity corrected covariance matrices (White 1980, Long and Ervin 2000) and post-hoc pairwise t-test with unequal variances were employed (white.adjust = TRUE in ANOVA and pool.sd = TRUE in pairwise t-test)
 
-A three-way ANOVA was conducted to determine the effects of miRNA, cell line and irradiation on gene expression. There was a statistically significant three-way interaction between miRNA, cell line and irradiation, F(156, 1160) = 1.39, p = 0.002.
+A two-way ANOVA was conducted at each level of the factor *miRNA* to determine the effects of cell line and irradiation on miRNA expression. Statistical significance was accepted for p < 0.05 after fdr-adjustment (Benjamini & Hochberg 1995) for two-way interactions and simple main effects. The results of the two-way ANOVA are shown exemplary below.
 
-```{r, message=FALSE}
-## ANOVA to assess if there are statistically significant differences in cell lines
-
-# 3-way ANOVA 
-three_way_ANOVA <- dat %>% 
-  anova_test(log_exp~miRNA*Irradiation*cell_line, white.adjust = T)
-three_way_ANOVA
-```
-
-Statistical significance was accepted for p < 0.05 after fdr-adjustment (Benjamini & Hochberg 1995) for simple two-way interactions and simple simple main effects. The results of the two-way ANOVA are shown exemplary below.
-
-
+STR-SHIFT + Enter --> code chunk + output
 ```{r, message=FALSE}
 # 2-way ANOVA with miRNA as moderator variable
 two_way_ANOVA <- dat %>%
   group_by(miRNA) %>%
   anova_test(log_exp ~ cell_line*Irradiation, white.adjust = T) %>%
   adjust_pvalue(method = "fdr") 
-head(two_way_ANOVA)
-
+two_way_ANOVA
 ```
 
-*NOTE: using the pooled variance from a 3-way ANOVA in the following 2-way ANOVA yields a higher statistical power but is more susceptible to violations from the homogeneity of variance assumptions. Analogously post-hoc tests with pooled variances (pool.sd = TRUE) are better in situations when the assumptions are met, at the cost of being less robust when assumptions not met.*
-
-
-
-In 5 out of the 40 miRNAs there was an interaction effect present (miR-126-3p, miR-146a-5p, miR-30a-3p, miR-30b-5p, miR-7-5p). A main effect was observed in 38 out of 40 miRNAs (each of the miRNAs showing an interaction effect also showed a sigfnifcant main effect). Only for miRNA let-7f-p and miR-30d-5p no cell line effect could be observed. 
+In 5 out of the 40 miRNAs there was an interaction effect present (miR-126-3p, miR-146a-5p, miR-30a-3p, miR-30b-5p, miR-7-5p). A cell line main effect was observed in 38 out of 40 miRNAs (each of the miRNAs showing an interaction effect also showed a sigfnifcant main effect). Only for miRNA let-7f-p and miR-30d-5p no cell line effect could be observed after adjusting for multiple testing. 
 
 
 ```{r}
@@ -217,14 +203,14 @@ two_way_interaction <- two_way_ANOVA %>%
   filter(Effect == "cell_line:Irradiation" & p.adj < 0.05) %>%
   pull(miRNA)
 two_way_ANOVA %>% 
-  filter(miRNA %in% two_way_interaction & Effect == "cell_line:Irradiation")
+  filter(miRNA %in% two_way_interaction & Effect == "cell_line:Irradiation") 
 
 # show main effect
 two_way_main<- two_way_ANOVA %>%
   filter(Effect == "cell_line" & p.adj < 0.05) %>%
   pull(miRNA)
 two_way_ANOVA %>% 
-  filter(miRNA %in% two_way_main & Effect == "cell_line")
+  filter(miRNA %in% two_way_main & Effect == "cell_line") 
 
 # no effect
 two_way_ANOVA %>% 
@@ -240,16 +226,86 @@ one_way_ANOVA <- dat %>%
   group_by(miRNA, Irradiation) %>%
   anova_test(log_exp ~ cell_line, white.adjust = T) %>%
   adjust_pvalue(method = "fdr") %>% 
-  filter(Irradiation == "control" & p.adj < 0.05) 
+  filter(Irradiation == "control" & p.adj < 0.05) %>%
+  select(-Irradiation)
+one_way_ANOVA
 ```
 
+*NOTE: using the pooled variance from a 2-way ANOVA in the following 1-way ANOVA yields a higher statistical power but is more susceptible to violations from the homogeneity of variance assumptions. Analogously post-hoc tests with pooled variances (pool.sd = TRUE) are better in situations when the assumptions are met, at the cost of being less robust when assumptions not met.*
+
+The differentially expressed miRNAs were used in a hierarchical clustering analysis and visualized in a Heatmap to reduce complexity and show the quantitative properties of each miRNA in an overview approach (Fig. 3). 
 
 
+```{r}
+# Heatmap  
+# transform data for Heatmap format
+dat_Heatmap <- dat %>% 
+  filter(Irradiation == "control" & miRNA %in% pwc_cell_line$miRNA) %>%
+  select(-c(Irradiation, log_exp)) %>%
+  spread(miRNA, expression) %>%
+  mutate(cell_line = str_replace_all(cell_line, "_","-"))
 
+# scale data for Heatmap
+dat_scaled <- dat_Heatmap %>% 
+  column_to_rownames("ID") %>% 
+  select(-cell_line) %>%
+  scale() %>%
+  t()
 
+# set ID as rownames so colorbar works properly
+dat_colorbar <- dat_Heatmap %>% select(c(ID, cell_line)) %>% 
+  column_to_rownames("ID")
 
+# define colors for colorbar
+colorbar <- HeatmapAnnotation(
+  df =dat_colorbar,
+  col = list(
+    cell_line = c(
+      "Met-1" = "#0073C2FF",
+      "Met-4" = "#EFC000FF",
+      "SCC-12"="#868686FF" ,
+      "SCC-13"="#CD534CFF",
+      "SCL-II"="#7AA6DCFF")
+    ),
+  annotation_legend_param = list(
+    cell_line = list(nrow=1)
+    )
+  )
 
+# define color for the Heatmap cells
+col_fun = colorRamp2(c(-1.8, 0, 1.8), c(c("#6D9EC1", "white", "#E46726")))
 
+# Draw Heatmap 
+Ht <- Heatmap(
+  dat_scaled,
+  col= col_fun,
+  top_annotation = colorbar,
+  row_split = 4,
+  column_title = c("A", "B", "C"),
+  border = T,
+  column_km = 3, #  split cell lines in 3 clusters according to PCA
+  column_km_repeats = 100, # repeat km split 100 times to get a stable cluster
+  clustering_method_row = "average", # average linkage
+  clustering_method_columns = "average",
+  clustering_distance_row = "pearson", 
+  clustering_distance_column = "euclidean",
+  rect_gp = gpar(col = "white",lty = 1, lwd = 1),
+  row_names_gp = gpar(fontsize = 10),
+  show_column_names = FALSE,
+  column_names_gp = gpar(fontsize = 10),
+  heatmap_legend_param = list(
+    title = "row Z-score",
+    at = seq(-2,2,by=1),
+    color_bar="continuous",
+    title_position ="topcenter",
+    legend_direction = "horizontal",
+    legend_width = unit(4, "cm")
+    ))
+
+draw(Ht, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
+```
+
+![**Fig. 3: Title.**  ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/PCA_combined_irradiation.png)
 
 
 
