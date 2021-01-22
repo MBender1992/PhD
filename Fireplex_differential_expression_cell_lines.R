@@ -7,24 +7,10 @@ library(ComplexHeatmap)
 library(factoextra)
 library(FactoMineR)
 library(circlize)
+library(devtools)
 
-
-if(str_detect(getwd(), "C:/")){
-  setwd("C:/Marc/Arbeit/R/base_scripts")
-} else{
-  setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/base_scripts")
-}
-
-#loading custom functions
-source("R_functions.R")
-
-
-# # set working directory depending on location
-# if(str_detect(getwd(), "C:/Marc")){
-#   setwd("C:/Marc/Arbeit/R/PhD/Daten")
-# } else{
-#   setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/PhD/Daten")
-# }
+# source R functions
+source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
 
 #load data
 url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/200619_chronic_irr_normalized.csv" 
