@@ -110,7 +110,6 @@ two_way_irradiation <- two_way_ANOVA %>%
 
 
 
-
 ## Interaction effect..........................................................................................
 # calculate fold changes
 folds <-  dat_summary %>% 

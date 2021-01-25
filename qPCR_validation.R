@@ -25,10 +25,13 @@ dat_qPCR <- read_csv(url(url_file_val)) %>%
       str_replace_all("(\\d*$|_([:alpha:]+|\\d+)\\d*[:alpha:]*)","") %>%
       str_replace_all("K0", "con"),
     treatment = tolower(treatment)
-    ) 
+    ) %>% 
+  mutate(gene_name = tolower(gene_name))
 
 # load miR30d data (calculated separately as measured with different cycler and normalized with different HK genes)
-dat_miR30d <- readRDS(file = "miR-30d.rds")
+url_miR30 <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/miR-30d.rds" 
+dat_miR30d <- readRDS(url(url_miR30)) %>% mutate(gene_name = tolower(gene_name))
+
 
 # calculate geoMean of HK genes for each sample
 dat_HK <- dat_qPCR %>% 
@@ -44,8 +47,6 @@ dat_dCT <- inner_join(dat_qPCR, dat_HK) %>%
   select(-gene_type) %>%
   mutate(dCT = geomean_HK - mean_ct)
 
-
-
 ## calculate ddCT
 ddCT <- dat_dCT %>% 
   group_by(gene_name,cell_line) %>% 
@@ -55,7 +56,8 @@ ddCT <- dat_dCT %>%
   mutate(ddCT = dCT - ctrl_dCT) %>%
   ungroup() %>%
   select(-c(Messung_1, Messung_2)) %>%
-  add_row(dat_miR30d)
+  add_row(dat_miR30d) %>% 
+  rename(miRNA = gene_name) 
 
 
 
@@ -74,8 +76,10 @@ ddCT %>%
 
 # one-sided t-test vs null
 ddCT %>% group_by(cell_line,gene_name) %>% 
-  t_test(ddCT~ 1, mu = 0) %>% adjust_pvalue(method = "BH") %>%
-  filter(p <= 0.05) %>% arrange(gene_name)
+  t_test(ddCT~ 1, mu = 0) %>% 
+  adjust_pvalue(method = "fdr") %>%
+  filter(p <= 0.05) %>% 
+  arrange(gene_name)
 
 
 # statistics on ddCT, and show results in log space
@@ -91,22 +95,27 @@ ddCT %>% group_by(cell_line,gene_name) %>%
 
 
 
+
+# extract fold changes for each miRNA and cell line from Fireplex analysis
+logFC_fireplex <- folds %>%
+  filter(miRNA %in% ddCT$miRNA) %>%
+  select(-FC) %>%
+  mutate(cell_line = str_replace_all(cell_line, "_","-")) %>%
+  setNames(c("cell_line","miRNA", "logFC_Fireplex")) 
+
+# join results from qPCR and Fireplex analysis
+dat_plot <- ddCT %>%
+  left_join(logFC_fireplex) %>%
+  filter(!is.na(ddCT)) %>%
+  mutate(miRNA = factor(miRNA, levels = mixedsort(unique(.$miRNA), decreasing = T)))
+
+
+
 # define colors 
 library("colorspace") 
 pal <- choose_palette()
 cols <- pal(20)
-
 cols <- c("#E2E2E2", "#DCDCDC" ,"#D1D1D1", "#C2C2C2", "#B1B1B1", "#9E9E9E", "#8A8A8A" ,"#747474" ,"#5E5E5E" ,"#474747")
-
-
-# generate plot data
-logFC_fireplex <- readRDS(file = "logFC_fireplex.rds")
-
-dat_plot <- ddCT %>%
-  left_join(logFC_fireplex) %>%
-  filter(!is.na(ddCT)) %>%
-  mutate(gene_name = factor(gene_name, levels = mixedsort(unique(.$gene_name), decreasing = T)))
-
 
 
 # calculation of sd on dCT values and calculation of ddCT by error propagation for ddCT values
@@ -124,7 +133,7 @@ dat_plot %>%
     width=0.4
   ) +
   geom_point(aes(cell_line,logFC_Fireplex), fill = "red", shape = 23) +
-  facet_wrap(~gene_name, scales = "free") +
+  facet_wrap(~miRNA, scales = "free") +
   geom_hline(yintercept = 0, lty = 3) +
   theme_minimal() + 
   theme(#legend.background = element_rect(colour = 'grey', fill = 'white', linetype='solid'),

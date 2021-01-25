@@ -541,7 +541,19 @@ Intriguingly, significant irradiation effects were only present in the three cel
 
 ### 1.4.3 qPCR Validation
 
-To validate the findings of section 1.4.1 and section 1.4.2 qPCR was performed. Data was imported to R and analyzed using the ddCT method (Livak & Schmittgen 2001) and three housekeeping genes as suggested by Vandesompele et. al (2002). The three Housekeeping genes in this study were sno44, sno48, miR-16-5p
+To validate the findings of section 1.4.1 and section 1.4.2 qPCR was performed. For the analysis four biological replicates – each measured twice to reduce technical variability – were used. Values of technical replicates were summarized by arithmetic mean. sno44 (Small nucleolar RNA SNORD44), sno48 (Small nucleolar RNA SNORD48) and miR-16-5p were used as house-keeping genes for normalisation as previously described (Vandesompele 2002). In contrast to Livak and Schmittgen  ΔCt- and ΔΔCt-values were calculated as:
+
+
+$$
+\begin{aligned}
+ ΔCt &= Ct_{ref} - Ct_{goi}\\
+ ΔΔCt &= ΔCt_{ctrl} - ΔCt_{trt}
+\end{aligned}
+$$
+
+ 
+with Ct~ref~ representing the Ct value of the reference gene, Ct~goi~ representing the Ct value of the gene of interest, ΔCt~ctrl~ representing the ΔCt-value of the control samples and ΔCt~trt~ representing the ΔCt-value of the irradiated samples. This way positive/negative ΔCt-values directly correspond to a higher/lower relative expression and positive/negative ΔΔCt-values directly correspond to a higher/lower fold-change without the need of taking inverse values. 
+
 
 ```{r, message = FALSE}
 # save url
@@ -561,11 +573,111 @@ dat_qPCR <- read_csv(url(url_file_val)) %>%
       str_replace_all("(\\d*$|_([:alpha:]+|\\d+)\\d*[:alpha:]*)","") %>%
       str_replace_all("K0", "con"),
     treatment = tolower(treatment)
-    ) 
+    ) %>% 
+  # set everything to lower case letters for uniformity with the previous dataset
+  mutate(gene_name = tolower(gene_name))
+
+# load miR30d data (calculated separately as measured with different cycler and normalized with different HK genes)
+url_miR30 <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/miR-30d.rds" 
+dat_miR30d <- readRDS(url(url_miR30))%>% 
+  mutate(gene_name = tolower(gene_name))
+
 dat_qPCR
 ```
 
 
+```{r}
+# calculate geoMean of HK genes for each sample
+dat_HK <- dat_qPCR %>% 
+  group_by(Name, cell_line) %>%
+  filter(gene_type == "HK") %>%
+  mutate(geomean_HK = geoMean(mean_ct, na.rm=T)) %>%
+  distinct(geomean_HK)
+
+# calculate dCT values
+dat_dCT <- inner_join(dat_qPCR, dat_HK) %>%
+  ungroup() %>%
+  filter(gene_type != "HK") %>%
+  select(-gene_type) %>%
+  mutate(dCT = geomean_HK - mean_ct)
+
+## calculate ddCT
+ddCT <- dat_dCT %>% 
+  group_by(gene_name,cell_line) %>% 
+  filter(treatment == "con") %>%
+  summarize(ctrl_dCT = mean(dCT, na.rm = T)) %>%
+  inner_join(dat_dCT %>% 
+  filter(treatment != "con")) %>%
+  mutate(ddCT = dCT - ctrl_dCT) %>%
+  ungroup() %>%
+  select(-c(Messung_1, Messung_2)) %>%
+  # combine with previous results of miR-30d
+  add_row(dat_miR30d) %>% 
+  # rename column to "miRNA" for subsequent analysis
+  rename(gene_name = miRNA) 
+```
+
+ΔΔCt-values were tested for significant differences from 0 with a one-sample t-test vs. 0 and compared to the Fireplex results (Fig. 5 & Fig. 6).
+
+```{r}
+# one-sided t-test vs null
+ddCT %>% group_by(cell_line,gene_name) %>% 
+  t_test(ddCT~ 1, mu = 0) %>% 
+  filter(p <= 0.05) %>% 
+  arrange(gene_name)
+```
+
+```{r}
+# extract fold changes for each miRNA and cell line from Fireplex analysis
+logFC_fireplex <- folds %>%
+  filter(miRNA %in% c(ddCT$miRNA, "mir-30d-5p") %>%
+  select(-FC) %>%
+  mutate(cell_line = str_replace_all(cell_line, "_","-")) %>%
+  setNames(c("cell_line","miRNA", "logFC_Fireplex")) 
+
+# join results from qPCR and Fireplex analysis
+dat_plot <- ddCT %>%
+  left_join(logFC_fireplex) %>%
+  filter(!is.na(ddCT)) %>%
+  mutate(miRNA = factor(miRNA, levels = mixedsort(unique(.$miRNA), decreasing = T)))
+
+# define color sequence for the plot
+cols <- c("#E2E2E2", "#DCDCDC" ,"#D1D1D1", "#C2C2C2", "#B1B1B1", "#9E9E9E", "#8A8A8A" ,"#747474" ,"#5E5E5E" ,"#474747")
+
+# plot errorbars
+dat_plot %>% 
+  ggplot(aes(cell_line,ddCT,fill = cell_line)) +
+  stat_boxplot(
+    geom ='errorbar',position = position_dodge(0.48),
+    size=0.5,
+    width = 0.2
+  ) +
+  # add boxplot on top the errorbars
+  geom_boxplot(
+    color = "black", position = position_dodge(0.48), 
+    mapping = aes(x = cell_line,y =ddCT),
+    width=0.4
+  ) +
+  # plot points showing the mean of the Fireplex results
+  geom_point(aes(cell_line,logFC_Fireplex), fill = "red", shape = 23) +
+  facet_wrap(~miRNA, scales = "free") +
+  geom_hline(yintercept = 0, lty = 3) +
+  # change theme
+  theme_minimal() + 
+  theme(
+    legend.position = "bottom",
+    axis.line.y.left   = element_line(color = 'black'),
+    axis.ticks.y = element_line(), 
+    panel.grid  = element_blank(), 
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+    )  +
+  scale_y_continuous(limits = c(-2.2,2.2),breaks = seq(-2,2, 0.5)) +
+  scale_color_manual(values = cols[seq(2,10,2)], name = "cell line") +
+  scale_fill_manual(values = cols[seq(2,10,2)], name = "cell line") +
+  ylab("log2-FC") 
+
+```
 
 
 
