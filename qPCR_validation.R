@@ -97,7 +97,7 @@ ddCT %>% group_by(cell_line,gene_name) %>%
 
 
 # extract fold changes for each miRNA and cell line from Fireplex analysis
-logFC_fireplex <- folds %>%
+logFC_fireplex <- folds %>% # from script "fireplex_differential_expression_Irradiation
   filter(miRNA %in% ddCT$miRNA) %>%
   select(-FC) %>%
   mutate(cell_line = str_replace_all(cell_line, "_","-")) %>%

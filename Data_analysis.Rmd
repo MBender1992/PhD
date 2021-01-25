@@ -678,7 +678,11 @@ dat_plot %>%
   ylab("log2-FC") 
 
 ```
+![**Fig. 7: qPCR validation of Fireplex results (Fig 5. & Fig.6).** Shown are log2FC of irradiated samples in relation to controls. One sample t-test was used for comparison of log2FC versus 0. Red squares show the mean log2FC of irradiated vs. control samples in the Fireplex analysis. For readability, miRNA expression with |log2FC| > 2 in the Fireplex analysis is indicated by arrows.  &#42;&#42;: p < 0.01, &#42;: p < 0.05. n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_qPCR_validation.png)
 
-
+Generally the qPCR results validate the Fireplex results as indicated by a similar direction of miRNA expression (when boxplots and red squares show common downregulation or upregulation, respectively). Contradictory results are present for miRNA-7-5p in SCC-12 (Fireplex: upregulated qPCR: downregulated), for miR-126-3p in SCC-12 (Fireplex: not changed, qPCR: upregulated) and SCC-13 (Fireplex: upregulated, qPCR: downregulated), for miR-135b-5p in SCC-13 (Fireplex: upregulated, qPCR: not changed), for miR-146-5p in SCC-12 (Fireplex: upregulated, qPCR: downregulated) and SCC-13 (Fireplex: downregulated, qPCR: upregulated), for miR 200a-3p in SCL-II (Fireplex: upregulated, qPCR: downregulated) and for miR-424-5p in SCC-13 (Fireplex: upregulated, qPCR: downregulated) and SCL-II (Fireplex: upregulated, qPCR: not changed). The best overlap between Fireplex and qPCR result could be observed for miR-205-5p with the log2FC of the Fireplex analysis being within the data range covered by the boxplot for each cell line. Because of this consistent downregulation and the role of miR-205-5p in cancer progression and metastasis in various cancer entitities, the role of this miRNA was chosen to be further elucidated in the context of cSCC progression (see section 2). 
 
 ##  1.5 UV sensitivity of cell lines
+
+
+
