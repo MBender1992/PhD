@@ -538,7 +538,7 @@ Intriguingly, significant irradiation effects were only present in the three cel
 
 ### 1.4.3 qPCR Validation
 
-To validate the findings of section 1.4.1 and section 1.4.2
+To validate the findings of section 1.4.1 and section 1.4.2 qPCR was performed.  
 
 
 ##  1.5 UV sensitivity of cell lines
