@@ -457,9 +457,9 @@ dat_plot %>%
 ```
 
 
-![**Fig. 5: miRNA expression of the differentially expressed miRNAs with an interaction effect of cell line and irradiation in the two-way ANOVA (section 1.3.2).** KAUVIR = cells irradiated with the irradiation device for the KAUVIR project. Results of interaction term in two-way ANOVA after fdr-adjustments are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;&#42;: p < 0.001, &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_interaction.png)
+![**Fig. 5: miRNA expression of the differentially expressed miRNAs with an interaction effect of cell line and irradiation in the two-way ANOVA (section 1.3.2).** KAUVIR: cells irradiated with the irradiation device for the KAUVIR project. Results of interaction term in two-way ANOVA after fdr-adjustment are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;&#42;: p < 0.001, &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_interaction.png)
 
-All 4 miRNAs are upregulated in at least one cell line (miR-126-3p in SCC-13, miR-146a-5p in SCL-II, miR-30a-3p in SCC-12 and SCL-II and miR-7-5p in SCL-II). Although not significantly changed the same trend of upregulation can be observed for other cell lines as well, with an exception of miR-126-3p in Met-1 and SCC-12, miR-146a-5p in SCC-12 and SCC-13 and miR-7-5p in Met-1 and SCC-13 (which even shows a downregulation after irradiation, however not significantly). 
+All 4 miRNAs were upregulated in at least one cell line (miR-126-3p in SCC-13, miR-146a-5p in SCL-II, miR-30a-3p in SCC-12 and SCL-II and miR-7-5p in SCL-II). Although not significantly changed the same trend of upregulation can be observed for other cell lines as well, with an exception of miR-126-3p in Met-1 and SCC-12, miR-146a-5p in SCC-12 and SCC-13 and miR-7-5p in Met-1 and SCC-13 (which even shows a downregulation after irradiation, however not significantly). 
 
 
 
@@ -530,6 +530,15 @@ dat_plot %>%
   ylab("miRNA expression (a.u.)")
 ```
 
-![**Fig. 6: miRNA expression of the differentially expressed miRNAs with an interaction effect of cell line and irradiation in the two-way ANOVA (section 1.3.2).** KAUVIR = cells irradiated with the irradiation device for the KAUVIR project. Results of interaction term in two-way ANOVA after fdr-adjustments are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;&#42;: p < 0.001, &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_irradiation.png)
+![**Fig. 6: miRNA expression of the differentially expressed miRNAs with an irradiation main effect in the two-way ANOVA but without significant interaction term (section 1.3.2).** KAUVIR: cells irradiated with the irradiation device for the KAUVIR project. Results of irradiation term in two-way ANOVA after fdr-adjustment are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_irradiation.png)
 
-## 1.4.3 qPCR Validation
+Significant upregulation could be detected for miR-135b-5p in SCC-13, miR-183-5p in SCC-13, miR-200a-3p in SCC-12, miR-30d-5p in SCC-13 and miR-424-5p in SCC-13. The miRNA expression shows a similar trend in the other cell lines as well with an exception of miR-135b-5p in Met-1 and SCL-II, miR-200a-3p in SCC-13 and miR-424-5p in Met-1. miR-205-5p is the only miRNA exhibiting a downregulation in all cell lines, with a significant downregulation in SCL-II. Furthermore, miR-205-5p shows the most significant general irradiation effect with p = 0.000253 in the two-way ANOVA. In summary UV irradiation seems to induce miRNA expression more often than inhibting miRNA expression with miR-205-5p being the only significantly downregulated miRNA out of totally 10 differentially expressed miRNAs between treated and control samples (results from section 1.4.1 and 1.4.2 combined). 
+
+Intriguingly, significant irradiation effects were only present in the three cell lines SCC-12, SCC-13 and SCL-II. This effect has been further investigated in section 1.5. 
+
+### 1.4.3 qPCR Validation
+
+To validate the findings of section 1.4.1 and section 1.4.2
+
+
+##  1.5 UV sensitivity of cell lines
