@@ -19,13 +19,13 @@ This document serves as a summary of the data analysis conducted during my PhD t
 
 ### Loading of required packages
 
-```{r}
+```{r, message = FASLE}
 # data wrangling and basic visualization
 library(tidyverse)
 library(ggpubr)
 # statistics
 library(rstatix)
-# library(EnvStats) for function geoMEan
+library(EnvStats) 
 # Heatmap
 library(ComplexHeatmap)
 library(circlize)
@@ -344,19 +344,20 @@ two_way_ANOVA %>%
   filter(miRNA %in% two_way_interaction & Effect == "cell_line:Irradiation") 
 ```
 
-For easier computation and symmetry around 0 fold changes were calculated using log2 expression values to calculate the log-fold change (log2FC).The analogous threshold to FC > 1.5 is  |log2FC| >  0.585. 
+Data was summarized using geometric mean and geometric sd to show data in the original scale but summarized with respect to the log-normal distribution of the miRNA expression values. Fold changes were calculated by dividing the geometric mean of the irradiated samples by the geometric mean of the control cells for each miRNA and cell line, respectively. 
+For easier computation and symmetry around 0, fold changes were log2 transformed (log2FC).The analogous threshold to FC > 1.5 is  |log2FC| >  0.585. 
 
 ```{r, message = FALSE}
 #calculate log-fold changes
- dat_summary <- dat %>% 
-  mutate(expression = expression +0.1) %>%
+dat_summary <- dat %>% 
+  mutate(expression = expression + 1) %>%
   group_by(cell_line, Irradiation,miRNA) %>%
-  summarize(mean = mean(log_exp, na.rm =T), sd = sd(log_exp))
+  summarize(geomean = geoMean(expression, na.rm =T), geosd = geoSD(expression))
 folds <-  dat_summary %>% 
   group_by(cell_line,  miRNA) %>% 
-  summarize(FC = mean[Irradiation == "KAUVIR"] - mean[Irradiation == "control"]) %>% 
-  setNames(c("cell_line", "miRNA", "log2FC"))
-folds 
+  summarize(FC = geomean[Irradiation == "KAUVIR"]/geomean[Irradiation == "control"]) %>% 
+  mutate(log2FC = log2(FC)) %>%
+  setNames(c("cell_line", "miRNA","FC", "log2FC"))
 ```
 
 Combining the criterea for different expression as described in section 1.4, four miRNAs remained. 
@@ -378,6 +379,10 @@ diff_expr_interaction <- pwc_interaction %>%
   filter(abs(log2FC) > log2(1.5))
 diff_expr_interaction
 ```
+
+A graphic visiualisation is shown in Fig. 5. 
+
+
 
 
 

@@ -2,7 +2,9 @@ library(tidyverse)
 library(ggpubr)
 library(rstatix)
 library(agricolae)
+library(EnvStats)
 library(devtools)
+library(data.table)
 
 # source R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
@@ -18,9 +20,9 @@ dat <-  load_Fireplex_data_PhD(filename = url(url_file), threshold = 2.5)
 
 # summary statistics 
 dat_summary <- dat %>% 
+  mutate(expression = expression + 1) %>%
   group_by(cell_line, Irradiation,miRNA) %>%
-  summarize(mean = mean(log_exp, na.rm =T), sd = sd(log_exp))
-
+  summarize(geomean = geoMean(expression, na.rm =T), geosd = geoSD(expression))
 
 
 # visualize data
@@ -113,8 +115,9 @@ two_way_irradiation <- two_way_ANOVA %>%
 # calculate fold changes
 folds <-  dat_summary %>% 
   group_by(cell_line,  miRNA) %>% 
-  summarize(FC = mean[Irradiation == "KAUVIR"] - mean[Irradiation == "control"]) %>% 
-  setNames(c("cell_line", "miRNA", "log2FC"))
+  summarize(FC = geomean[Irradiation == "KAUVIR"]/geomean[Irradiation == "control"]) %>% 
+  mutate(log2FC = log2(FC)) %>%
+  setNames(c("cell_line", "miRNA","FC", "log2FC"))
 
 # t-test for the interaction effect
 pwc_interaction <- dat %>%
