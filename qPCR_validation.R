@@ -10,13 +10,11 @@ library(devtools)
 # source R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
 
-
-setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/PhD/Daten")
-
+# access data
+url_file_val <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/qPCR_Validation.csv" 
 
 # load data
-filename <- "qPCR_Validation.xlsx"
-dat_qPCR <- read_xlsx(filename, sheet = "Results") %>% 
+dat_qPCR <- read_csv(url(url_file_val)) %>% 
   rename(Name = Probenname) %>%
   mutate(
     cell_line = str_replace_all(.$Name,"^\\d+_","") %>%
@@ -29,16 +27,15 @@ dat_qPCR <- read_xlsx(filename, sheet = "Results") %>%
     treatment = tolower(treatment)
     ) 
 
+# load miR30d data (calculated separately as measured with different cycler and normalized with different HK genes)
+dat_miR30d <- readRDS(file = "miR-30d.rds")
 
-
-# calculate geoMean of HK genes for each separate petri dish
+# calculate geoMean of HK genes for each sample
 dat_HK <- dat_qPCR %>% 
   group_by(Name, cell_line) %>%
   filter(gene_type == "HK") %>%
   mutate(geomean_HK = geoMean(mean_ct, na.rm=T)) %>%
   distinct(geomean_HK)
-
-
 
 # calculate dCT values
 dat_dCT <- inner_join(dat_qPCR, dat_HK) %>%
@@ -47,8 +44,7 @@ dat_dCT <- inner_join(dat_qPCR, dat_HK) %>%
   select(-gene_type) %>%
   mutate(dCT = geomean_HK - mean_ct)
 
-# load miR30d data (calculated separately as measured with different cycler and normalized with different HK genes)
-dat_miR30d <- readRDS(file = "miR-30d.rds")
+
 
 ## calculate ddCT
 ddCT <- dat_dCT %>% 

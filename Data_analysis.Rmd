@@ -15,7 +15,10 @@ p.caption {
 
 # Preamble
 
-This document serves as a summary of the data analysis conducted during my PhD thesis. It is structured chronologically to emphasize decision making based on the previous results. The basic question was if UV radiation influences tumor growth beyond initiation e.g. by induction of genomic changes or epigenetic alterations resulting in tumor progression and metastasis of cutaneous squamous cell carcinoma (cSCC). Data is available at: https://github.com/MBender1992/PhD/blob/Marc/Data/200619_chronic_irr_normalized.csv
+This document serves as a summary of the data analysis conducted during my PhD thesis. It is structured chronologically to emphasize decision making based on the previous results. The basic question was if UV radiation influences tumor growth beyond initiation e.g. by induction of genomic changes or epigenetic alterations resulting in tumor progression and metastasis of cutaneous squamous cell carcinoma (cSCC). All miRNAs in the following study were human miRNAs. Data is available at:
+
+  + Fireplex Analysis: https://github.com/MBender1992/PhD/blob/Marc/Data/200619_chronic_irr_normalized.csv
+  + qPCR validation of fireplex results: https://github.com/MBender1992/PhD/blob/Marc/Data/qPCR_Validation.csv 
 
 ### Loading of required packages
 
@@ -538,7 +541,32 @@ Intriguingly, significant irradiation effects were only present in the three cel
 
 ### 1.4.3 qPCR Validation
 
-To validate the findings of section 1.4.1 and section 1.4.2 qPCR was performed.  
+To validate the findings of section 1.4.1 and section 1.4.2 qPCR was performed. Data was imported to R and analyzed using the ddCT method (Livak & Schmittgen 2001) and three housekeeping genes as suggested by Vandesompele et. al (2002). The three Housekeeping genes in this study were sno44, sno48, miR-16-5p
+
+```{r, message = FALSE}
+# save url
+url_file_val <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/qPCR_Validation.csv" 
+
+# load data
+dat_qPCR <- read_csv(url(url_file_val)) %>% 
+  rename(Name = Probenname) %>%
+  # extract cell line out of ID string
+  mutate(
+    cell_line = str_replace_all(.$Name,"^\\d+_","") %>%
+      str_replace_all("(_|\\s+)([:alpha:]+|\\d+|)\\d*[:alpha:]*","")
+    ) %>%
+  # extract treatment out of ID string
+  mutate(
+    treatment = str_replace_all(.$Name,"^\\d+_[:alpha:]{3}-([:alpha:]{2}|\\d+)(_|\\s+)","") %>%
+      str_replace_all("(\\d*$|_([:alpha:]+|\\d+)\\d*[:alpha:]*)","") %>%
+      str_replace_all("K0", "con"),
+    treatment = tolower(treatment)
+    ) 
+dat_qPCR
+```
+
+
+
 
 
 ##  1.5 UV sensitivity of cell lines
