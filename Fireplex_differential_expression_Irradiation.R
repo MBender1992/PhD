@@ -167,6 +167,7 @@ limits <- aes(ymax = ifelse(geomean>0,geomean + geosd,geomean/2),
 
 
 
+
 ##################################
 #    Plot interaction effect     #
 ##################################
@@ -222,7 +223,7 @@ png("test.png", units="in", width=10, height=6, res=600)
 
 
 dat_plot %>% 
-  filter(miRNA %in% diff_expr_Irradiation$miRNA) %>%
+  filter(miRNA %in% diff_expr_irradiation$miRNA) %>%
   ggplot(
     aes(
       x=cell_line,

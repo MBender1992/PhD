@@ -23,6 +23,7 @@ This document serves as a summary of the data analysis conducted during my PhD t
 # data wrangling and basic visualization
 library(tidyverse)
 library(ggpubr)
+library(data.table)
 # statistics
 library(rstatix)
 library(EnvStats) 
@@ -118,6 +119,7 @@ As shown above, when using three dimensions, the analysis is able to explain mor
 ```{r}
 fviz_pca_ind(
   res.pca,
+  # Fill individuals by groups
   geom.ind = "point",
   fill.ind = dat_PCA$cell_line,
   col.ind = "black",
@@ -196,6 +198,7 @@ STR-SHIFT + Enter --> code chunk + output
 # 2-way ANOVA with miRNA as moderator variable
 two_way_ANOVA <- dat %>%
   group_by(miRNA) %>%
+  # perform ANOVA with hccm correction (white.adjust = TRUE)
   anova_test(log_exp ~ cell_line*Irradiation, white.adjust = T) %>%
   adjust_pvalue(method = "fdr") 
 two_way_ANOVA
@@ -212,7 +215,7 @@ two_way_interaction <- two_way_ANOVA %>%
 two_way_ANOVA %>% 
   filter(miRNA %in% two_way_interaction & Effect == "cell_line:Irradiation") 
 
-# show main effect
+# show main cell line effect
 two_way_cell<- two_way_ANOVA %>%
   filter(Effect == "cell_line" & p.adj < 0.05) %>%
   pull(miRNA)
@@ -233,7 +236,8 @@ To further investigate the cell line effect a one-way ANOVA was conducted with m
 # 1-way ANOVA 
 one_way_ANOVA <- dat %>%
   group_by(miRNA, Irradiation) %>%
-  anova_test(log_exp ~ cell_line, white.adjust = T) %>%
+  # perform ANOVA with hccm correction (white.adjust = TRUE)
+  anova_test(log_exp ~ cell_line, white.adjust = TRUE) %>%
   adjust_pvalue(method = "fdr") %>% 
   filter(Irradiation == "control" & p.adj < 0.05) %>%
   select(-Irradiation)
@@ -267,7 +271,7 @@ dat_scaled <- dat_Heatmap %>%
 dat_colorbar <- dat_Heatmap %>% select(c(ID, cell_line)) %>% 
   column_to_rownames("ID")
 
-# define colors for colorbar
+# define colors for colorbar to identify cell lines
 colorbar <- HeatmapAnnotation(
   df =dat_colorbar,
   col = list(
@@ -294,12 +298,16 @@ Ht <- Heatmap(
   row_split = 4,
   column_title = c("A", "B", "C"),
   border = T,
-  column_km = 3, #  split cell lines in 3 clusters according to PCA
-  column_km_repeats = 100, # repeat km split 100 times to get a stable cluster
+  # split cell lines in 3 clusters according to PCA
+  column_km = 3, 
+  # repeat km split 100 times to get a stable cluster
+  column_km_repeats = 100, 
+  # define distance metric and clustering algorithm
   clustering_method_row = "average", # average linkage
   clustering_method_columns = "average",
   clustering_distance_row = "pearson", 
   clustering_distance_column = "euclidean",
+  # plot cosmetics 
   rect_gp = gpar(col = "white",lty = 1, lwd = 1),
   row_names_gp = gpar(fontsize = 10),
   show_column_names = FALSE,
@@ -313,6 +321,7 @@ Ht <- Heatmap(
     legend_width = unit(4, "cm")
     ))
 
+# plot the final heatmap with annotation and legend
 draw(Ht, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
 ```
 
@@ -321,7 +330,7 @@ draw(Ht, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
 The combined cluster analysis showed a clear separation of miRNA expression depending on the cell line context (A: SCC-12/SCC-13,B: SCL-II,C: Met-1/Met-4).
 The miRNAs were clustered in 4 groups. Cluster 1 was upregulated in cell line cluster A compared to cluster B and C. Cluster 2 was upregulated in cell line cluster B compared to cluster A and C. Cluster 4 was upregulated in cell line cluster C compared to A and B. Cluster 3 showed an intermediate expression of miRNAs in Cluster B and C with the lowest expression values observed in Cluster A.
 
-Taken together these findings indicate distinct miRNA clusters representing a cell line specific epigenetic pattern and possibly reflecting differentiation, p53 status or other phenotypes associated with these patterns. To investigate the biological function of the miRNAs in each cluster an overrepresentation analysis was conducted to find enriched pathways targeted by these miRNAs. #
+Taken together these findings indicate distinct miRNA clusters representing a cell line specific epigenetic pattern and possibly reflecting differentiation, p53 status or other phenotypes associated with these patterns. To investigate the biological function of the miRNAs in each cluster an overrepresentation analysis was conducted to find enriched pathways targeted by these miRNAs. 
 
 **TABELLE MIT PATHWAYS EINFÜGEN**
 
@@ -340,6 +349,7 @@ As mentioned above 5 miRNAs showed a significant interaction effect:
 
 
 ```{r}
+# miRNAs with a significant interaction effect
 two_way_ANOVA %>% 
   filter(miRNA %in% two_way_interaction & Effect == "cell_line:Irradiation") 
 ```
@@ -348,11 +358,13 @@ Data was summarized using geometric mean and geometric sd to show data in the or
 For easier computation and symmetry around 0, fold changes were log2 transformed (log2FC).The analogous threshold to FC > 1.5 is  |log2FC| >  0.585. 
 
 ```{r, message = FALSE}
-#calculate log-fold changes
+# summarize data with geometric mean and geometric sd for each miRNA in each cell line for irradiated cells and controls
 dat_summary <- dat %>% 
   mutate(expression = expression + 1) %>%
   group_by(cell_line, Irradiation,miRNA) %>%
   summarize(geomean = geoMean(expression, na.rm =T), geosd = geoSD(expression))
+# calculate fold changes by dividing the geomean expression value of irradiated cells by geomean expression value of 
+# control cells for each each miRNA in each cell line
 folds <-  dat_summary %>% 
   group_by(cell_line,  miRNA) %>% 
   summarize(FC = geomean[Irradiation == "KAUVIR"]/geomean[Irradiation == "control"]) %>% 
@@ -360,7 +372,7 @@ folds <-  dat_summary %>%
   setNames(c("cell_line", "miRNA","FC", "log2FC"))
 ```
 
-Combining the criterea for different expression as described in section 1.4, four miRNAs remained. 
+Combining the criterea for different expression as described in section 1.4, four miRNAs remained (Fig. 5).
 
 ```{r, message = FALSE}
 # t-test for the interaction effect
@@ -380,19 +392,87 @@ diff_expr_interaction <- pwc_interaction %>%
 diff_expr_interaction
 ```
 
-A graphic visiualisation is shown in Fig. 5. 
+```{r}
+# function expands facet limits individually to plot each facet with an individual scale
+facet_limits <-function(data, y, group){
+  
+  dat <- data.table(data)
+  
+  dat[,y_min := eval(parse(text = y))*0.5, by = eval(parse(text = group))]
+  dat[,y_max:= eval(parse(text = y))*1.25, by = eval(parse(text = group))]
+  
+  dat <- as_tibble(dat)
+  return(dat)
+}
+
+# apply function facet_limits to generate individual facet limits for the plot
+dat_plot <- facet_limits(dat_summary, "geomean + geosd", "miRNA") %>% 
+  mutate(cell_line = str_replace_all(cell_line, "_","-"))
+
+# define limits of errorbar to only show upper errorbar
+limits <- aes(ymax = ifelse(geomean>0,geomean + geosd,geomean/2),
+              ymin = ifelse(geomean<0,geomean - geosd,geomean/2))
 
 
+# generating Plot
+dat_plot %>% 
+  # only show differentially expressed miRNAs with a significant interaction term in two-way ANOVA
+  filter(miRNA %in% diff_expr_interaction$miRNA) %>%
+  ggplot(
+    aes(
+      x=cell_line,
+      y=geomean,
+      fill=Irradiation
+      )
+    ) + 
+  # add errorbars with the defined limits
+  geom_errorbar(
+    limits,
+    width=.2,
+    position=position_dodge(0.5)
+    ) +
+  # add barplots to show geometric mean
+  geom_bar(
+    stat="identity",
+    color="black",
+    position=position_dodge(),
+    width= 0.5
+    ) +
+  # split plot into separate plot for each miRNA and change theme
+  facet_wrap(~miRNA,scales="free")+ 
+  theme_PhD(axis.text.size = 8) +
+  theme(
+    axis.title.x = element_blank(),
+    strip.background = element_blank(),
+    legend.key.size = (unit(0.7,"line")),
+    legend.position = "bottom"
+  ) +
+  # extend facets by adding blank datapoints as defined with the function facet limits
+  geom_blank(aes(y = y_min)) +
+  geom_blank(aes(y = y_max)) + 
+  # change colors of the plot elements and add y axis title
+  scale_fill_manual(values = grey.colors(5,start=1,end=0.2))  +
+  scale_y_continuous(expand = c(0, 0)) +
+  ylab("miRNA expression (a.u.)")
+```
 
 
+![**Fig. 5: miRNA expression of the differentially expressed miRNAs with an interaction effect of cell line and irradiation in the two-way ANOVA (section 1.3.2).** KAUVIR = cells irradiated with the irradiation device for the KAUVIR project. Results of interaction term in two-way ANOVA after fdr-adjustments are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;&#42;: p < 0.001, &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_interaction.png)
+
+All 4 miRNAs are upregulated in at least one cell line (miR-126-3p in SCC-13, miR-146a-5p in SCL-II, miR-30a-3p in SCC-12 and SCL-II and miR-7-5p in SCL-II). Although not significantly changed the same trend of upregulation can be observed for other cell lines as well, with an exception of miR-126-3p in Met-1 and SCC-12, miR-146a-5p in SCC-12 and SCC-13 and miR-7-5p in Met-1 and SCC-13 (which even shows a downregulation after irradiation, however not significantly). 
 
 
 
 ### 1.4.2 Main effect Irradiation
 
+Subsequently the irradiation main effect has been investigated to analyze miRNAs with a common UV-response in the different cell types (Fig. 6). 
 
+```{r, message = FALSE}
+# filter miRNAs with a significant irradiation term but without significant interaction term
+two_way_irradiation <- two_way_ANOVA %>%
+  filter(Effect == "Irradiation" & p.adj < 0.05 & !miRNA %in% two_way_interaction) %>%
+  pull(miRNA)
 
-```{r}
 # t-test for the irradiation effect
 pwc_irradiation <- dat%>%
   group_by(miRNA,cell_line) %>%
@@ -407,5 +487,49 @@ diff_expr_irradiation <- pwc_irradiation %>%
 diff_expr_irradiation
 ```
 
+
+```{r}
+dat_plot %>% 
+  # only show differentially expressed miRNAs with a significant main effect "irradiation" term in two-way ANOVA but without significant interaction
+  filter(miRNA %in% diff_expr_Irradiation$miRNA) %>%
+  ggplot(
+    aes(
+      x=cell_line,
+      y=geomean,
+      fill=Irradiation
+    )
+  ) + 
+  # add errorbars with the defined limits
+  geom_errorbar(
+    limits,
+    width=.2,
+    position=position_dodge(0.5)
+  ) +
+  # add barplots to show geometric mean
+  geom_bar(
+    stat="identity",
+    color="black",
+    position=position_dodge(),
+    width= 0.5
+  ) +
+  # split plot into separate plot for each miRNA and change theme
+  facet_wrap(~miRNA,scales="free")+ 
+  theme_PhD(axis.text.size = 8) +
+  theme(
+    axis.title.x = element_blank(),
+    strip.background = element_blank(),
+    legend.key.size = (unit(0.7,"line")),
+    legend.position = "bottom"
+  ) +
+  # extend facets by adding blank datapoints as defined with the function facet limits
+  geom_blank(aes(y = y_min)) +
+  geom_blank(aes(y = y_max)) + 
+  # change colors of the plot elements and add y axis title
+  scale_fill_manual(values = grey.colors(5,start=1,end=0.2))  +
+  scale_y_continuous(expand = c(0, 0)) +
+  ylab("miRNA expression (a.u.)")
+```
+
+![**Fig. 6: miRNA expression of the differentially expressed miRNAs with an interaction effect of cell line and irradiation in the two-way ANOVA (section 1.3.2).** KAUVIR = cells irradiated with the irradiation device for the KAUVIR project. Results of interaction term in two-way ANOVA after fdr-adjustments are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;&#42;: p < 0.001, &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_irradiation.png)
 
 ## 1.4.3 qPCR Validation
