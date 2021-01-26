@@ -75,11 +75,11 @@ ddCT %>%
 
 
 # one-sided t-test vs null
-ddCT %>% group_by(cell_line,gene_name) %>% 
+ddCT %>% group_by(cell_line,miRNA) %>% 
   t_test(ddCT~ 1, mu = 0) %>% 
   adjust_pvalue(method = "fdr") %>%
   filter(p <= 0.05) %>% 
-  arrange(gene_name)
+  arrange(miRNA)
 
 
 # statistics on ddCT, and show results in log space
