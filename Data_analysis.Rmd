@@ -102,6 +102,79 @@ The threshold was set to 2.5 (a.u.) as this is the detection limit of the assay 
 
 ## 1.2 Principal component analysis (PCA)
 
+### 1.2.1 Theoretical Background
+*Note: Explanation from Statquest (YouTube) concerning PCA. An illustration of principal components for an example with 2 variables:*
+
+Data is plotted as var1 vs var2 (var1 on the x-axis, var2 on the y-axis). The center of this data is calculated and the data points are shifted so the center is at the origin (0,0). However, the relationship of the data points due to this rescaling did NOT change. A random line going through the origin is fitted, the original data points are projected onto this line and the distances from the origin to these projected points are calculated. The sum of squared distances (to avoid negative values cancelling out positive ones) is calculated as (SS(distances)): 
+$$
+\begin{aligned}
+SS(distances) = d_{1}^2 + d_{2}^2 + ... + d_{n}^2
+\end{aligned}
+$$
+with n = sample size
+
+The line is rotated around the origin and the line with the maximum SS(distances) becomes PC1. This lines' slope can be used to calculate singular vectors or Eigenvectors by looking at how many units the line goes along the x-axis in positive direction (b) if moved 1 unit in positive direction of the y-axis (c). Using pythagorean theorem the distance a (value along the slope) is equal to:  
+$$
+\begin{aligned}
+a = \sqrt{b^2+c^2}
+\end{aligned}
+$$
+which can be easily calculated. 
+  
+  + example: The slope is 0.25, then b=4 for c=1, using pythagorean theorem: 
+  
+$$
+\begin{aligned}
+a = \sqrt{b^2+c^2} = \sqrt{4^2+1^2} = \sqrt{16+1} = 4.12
+\end{aligned}
+$$
+a, b and c are then scaled by factor a, which in turn leads to a being 1:
+
+$$
+\begin{aligned}
+a(scaled) & = \frac{a}{a} = 1\\
+b(scaled) & = \frac{b}{a} = 0.97\\
+c(scaled) & = \frac{c}{a} = 0.242\\
+\end{aligned}
+$$
+This 1 unit long vector consisting of b(scaled) in the x-direction and c(scaled) in the y-direction is the Eigenvector consisting of 0.97 units var1 and 0.242 units var2. The Factors b(scaled) and c(scaled) are called loading scores and correspond to the importance of a particular variable to a principal component.
+In this example the loading scores tell us, in terms of how the values are projected onto PC1, var1 is 4 (0.97/0.242) times more important than var2. 
+
+In the case of only 2 variables PC2 is simply the line that is perpendicular to PC1. Then, the samples are also projected onto the PC2 axis. These projections of data on PC1 and PC2 on the PC1 and PC2 axis are then rotated so PC1 is horizontal. Afterwards out of these projections new positions for the samples are generated in the PC1 vs PC2 space.
+
+The more dimensions the more complex this process gets, the PCs however are always perpendicular to each other and are uncorrelated.
+The issue of growing complexity when considering more than three dimensions can be solved mathematically as another word for SS(distances) is Eigenvalues, which can be computed by matrix algebra. Out of these Eigenvalues, the Eigenvectors can be constructed and eventually the PC lines can be generated even for high-dimensional data.
+
+The variance of the PCs is simply the Eigenvalues or SS(distances) divided by the sample size minus one (n-1):
+$$
+\begin{aligned}
+var(PC_{i}) &= \frac{SS(distances(PC_{i}))}{n-1}\\
+\end{aligned}
+$$
+These variances can be used to calculate the proportion of variance in the data explained by each PC (variance explained) using the sum of variances :
+$$
+\begin{aligned}
+Sum(variances) = \sum_{i = 1}^n var(PC_{i})
+\end{aligned}
+$$
+To get the variance explained for each PC, the variance of the respective PC is divided by the sum of variances of all PCs.
+
++ Example to calculate variance explained for PC1 if var(PC1) is 15 and var(PC2) is 3:
+
+$$
+\begin{aligned}
+\frac{var(PC_{1})}{\sum_{i = 1}^n var(PC_{i})} = \frac{var(PC_{1})}{var(PC_{1})+var(PC_{2})} = \frac{15}{15+3} = 0.8\bar3 = 83.\bar3 \ \%
+\end{aligned}
+$$
+
+In this example PC1 would explain 83.3 % of the variance in the data and PC2 would explain 16.7 % of the variance in the data. In R the prcomp function generates 3 parameters: x, sdev and rotation
+
++ **x** contains the PCs to draw a graph
++ **sdev** is the standard deviation of the PCs and can be transferred to the variance by squaring sdev and subsequently be used to calculate the variance explained
++ **rotation** corresponds to the loading scores which show the importance of variables in respect to each PC
+
+### 1.2.2 Analysis
+
 Afterwards, data was analyzed for general changes between cell lines. As explorative analysis,PCA was chosen as it breaks down multidimensional data and facilitates visualization of the underlying data structure. 
 
 ```{r}
