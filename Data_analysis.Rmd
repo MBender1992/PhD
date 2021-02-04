@@ -327,6 +327,44 @@ one_way_ANOVA
 
 ### 1.3.4 Cluster analysis
 
+#### Theoretical background
+
+##### *Hierarchical clustering*
+
+Hierarchical clustering is a method to group data based on similarity in data structure and is mostly associated with heatmaps and dendrograms for data presentation. For gene/miRNA expression analysis genes/miRNAs typically represent rows and different samples represent columns. To find genes/miRNA that are similarly expressed distances between genes/miRNAs are measured e.g. using euclidean distance: 
+
+$$
+\begin{aligned}
+d = \sqrt{\sum_{i=1}^n (gene1_{i}-gene2_{i})^2}
+\end{aligned}
+$$
+With gene1~i~ being the expression of gene1 in sample i and gene2~i~ being the expression of gene2 in sample i.
+An example for 2 samples and 2 genes is shown below. Let gene expression of gene1 be 1.6 in sample1 and 0.5 in sample2 and expression of gene2 be -0.5 in sample1 and -1.9 in sample2:
+
+$$
+\begin{aligned}
+d & = \sqrt{\sum_{i=1}^n (gene1_{i}-gene2_{i})^2} \\
+  & = \sqrt{(gene1_{1} - gene2_{1})^2 + (gene1_{2} - gene2_{2})^2} \\
+  & = \sqrt{(1.6 - (-0.5))^2 + (0.5 - (-1.9))^2} \\
+  & = \sqrt{2.1^2 + 2.4^2} \\
+  & = 3.2
+\end{aligned}
+$$
+*Note: for 2 samples the euclidean distance between 2 genes/miRNAs is equal to the pythagorean theorem.*
+
+Other possible distance measures include: 
+ 
+ + pearson correlation
+ + spearman rho correlation
+ + kendall tau correlation
+ + manhattan distance
+ + 
+
+("euclidean", "maximum", "manhattan", "canberra", "binary", "minkowski", "pearson", "spearman", "kendall"
+
+##### *K-means clustering*
+
+#### Analysis
 The differentially expressed miRNAs were used in a combined approach using supervised kmeans to cluster cell lines (columns) and unsupervised hierachical clustering to cluster miRNAs (rows). Furthermore hierarchical clustering was also applied in the subclusters split by kmeans. The results were visualized in a Heatmap to reduce complexity and show the quantitative properties of each miRNA as an overview (Fig. 4). 
 
 
