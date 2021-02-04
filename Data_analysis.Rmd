@@ -277,6 +277,12 @@ No extreme outliers were present in the analysis. Testing for normality or homog
 
 ### 1.3.2 Two-Way ANOVA
 
+
+#### Excursion: ANOVA
+
+
+
+#### Analysis 
 A two-way ANOVA was conducted at each level of the factor *miRNA* to determine the effects of cell line and irradiation on miRNA expression. Statistical significance was accepted for p < 0.05 after fdr-adjustment (Benjamini & Hochberg 1995) for two-way interactions and simple main effects. The results of the two-way ANOVA are shown exemplary below.
 
 ```{r, message=FALSE}
@@ -601,7 +607,54 @@ dat_plot %>%
 ![**Fig. 5: miRNA expression of the differentially expressed miRNAs with an interaction effect of cell line and irradiation in the two-way ANOVA (section 1.3.2).** KAUVIR: cells irradiated with the irradiation device for the KAUVIR project. Results of interaction term in two-way ANOVA after fdr-adjustment are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;&#42;: p < 0.001, &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_interaction.png)
 
 All 4 miRNAs were upregulated in at least one cell line (miR-126-3p in SCC-13, miR-146a-5p in SCL-II, miR-30a-3p in SCC-12 and SCL-II and miR-7-5p in SCL-II). Although not significantly changed the same trend of upregulation can be observed for other cell lines as well, with an exception of miR-126-3p in Met-1 and SCC-12, miR-146a-5p in SCC-12 and SCC-13 and miR-7-5p in Met-1 and SCC-13 (which even shows a downregulation after irradiation, however not significantly). 
+\
+\
+\
 
+
+#### Excursion: t-test
+
+A t-test is a hypothesis test used to compare means of two samples a and b. The t-value for samples with equal variances (Student's t-test) is calculated as:
+
+$$
+\begin{aligned}
+t = \frac{m_a-m_b}{\sqrt{\frac{S^2}{n_a} + \frac{S^2}{n_b}}}
+\end{aligned}
+$$
+
+with m~a~ the mean of sample a, m~b~ the mean of sample b, n~a~ the sample size of a, n~b~ the sample size of b and S^2^ being an estimator of the pooled variance: 
+
+
+$$
+\begin{aligned}
+S^2 = \frac{\sum(x-m_a)^2 + \sum(x-m_b)^2}{n_a + n_b -2}
+\end{aligned}
+$$
+The degrees of freedom used to compare the calculated t-value to the critical t-value in a t-table are:
+
+$$
+\begin{aligned}
+df = n_{a} + n_{b} -2
+\end{aligned}
+$$
+
+For unequal variances (Welch's t-test) the following formulas can be used:
+
+
+$$
+\begin{aligned}
+t = \frac{m_a-m_b}{\sqrt{\frac{S_a^2}{n_a} + \frac{S_b^2}{n_b}}}
+\end{aligned}
+$$
+with m~a~ the mean of sample a, m~b~ the mean of sample b, n~a~ the sample size of a, n~b~ the sample size of b, S~a~ being the standard deviation of a and S~b~ being the standard deviation of b. 
+
+The degrees of freedom in this case are calculated as:
+
+$$
+\begin{aligned}
+df = \frac{(\frac{S_a^2}{n_a}  +\frac{S_b^2}{n_b})}{\frac{S_a^4}{n_a^2(n_a -1)} + \frac{S_b^4}{n_b^2(n_b -1)}}
+\end{aligned}
+$$
 
 
 ### 1.4.2 Main effect Irradiation
