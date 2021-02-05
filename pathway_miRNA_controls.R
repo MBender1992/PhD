@@ -30,4 +30,4 @@ paste(neg_con_Cluster1,  collapse = ",")
 
 # die Gene kann man mittels mirtargetlink ermitteln
 # controls 1000 mal wiederholen und Mittelwerte bilden --> pathway Analyse in R
-# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5768164/
+# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5768164/ oder mirIntergrator?? 
