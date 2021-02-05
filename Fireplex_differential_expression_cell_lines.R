@@ -373,7 +373,7 @@ cl_2B <- summary_clusters(ls_miRCluster, 2, "B")
 cl_4B <- summary_clusters(ls_miRCluster, 4, "C")
 
 
-
+library(RBiomirGS)
 rbiomirgs_mrnascan(
   objTitle = "cl_1A_predicted",
   mir = cl_1A$miRNA,
