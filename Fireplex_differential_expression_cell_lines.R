@@ -302,3 +302,108 @@ draw(Ht, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
 dev.off()
 
 
+mat <- dat_scaled
+
+# functions to extract cell lines from the cluster
+for (i in 1:length(column_order(Ht))){   if (i == 1) {
+  clu <- t(t(colnames(mat[,column_order(Ht)[[i]]])))
+  out <- cbind(clu, paste("cluster", i, sep=""))
+  colnames(out) <- c("ID", "cellCluster")   } else {
+    clu <- t(t(colnames(mat[,column_order(Ht)[[i]]])))
+    clu <- cbind(clu, paste("cluster", i, sep=""))
+    out <- rbind(out, clu)   } 
+}
+cl_clusters <- as.data.frame(out) %>% 
+  mutate(cellCluster = str_replace_all(cellCluster, "cluster1", "A"),
+         cellCluster = str_replace_all(cellCluster, "cluster2", "B"),
+         cellCluster = str_replace_all(cellCluster, "cluster3", "C")) 
+
+
+# function to extract miRNAs from the cluster
+for (i in 1:length(row_order(Ht))){   if (i == 1) {
+  clu <- t(t(rownames(mat[row_order(Ht)[[i]],])))
+  out <- cbind(clu, paste("cluster", i, sep=""))
+  colnames(out) <- c("miRNA", "miRCluster")     } else {
+    clu <- t(t(rownames(mat[row_order(Ht)[[i]],])))
+    clu <- cbind(clu, paste("cluster",i, sep=""))
+    out <- rbind(out, clu)    } 
+}
+miR_clusters <- as.data.frame(out)
+
+
+# construct new data frame containing cluster information
+dat_clusters <- left_join(filter(dat, Irradiation == "control"), cl_clusters) %>%
+  left_join(miR_clusters) %>% select(-c(Irradiation, cell_line)) %>%
+  mutate(miRNA = str_replace_all(miRNA,"let", "hsa-let"),
+         miRNA = str_replace_all(miRNA,"mir", "hsa-miR"))
+
+# create list for each miRCluster
+ls_miRCluster <- split(dat_clusters, f = dat_clusters$miRCluster)         
+
+# Function to extract fold changes and p-values of clusters
+summary_clusters <- function(ls, miRcluster, cellcluster){
+  # filter data for miRNA cluster i and combine data from cell cluster B and C as we wanna compare cluster A to the rest as the Heatmap indicates upregulation
+  data <- ls[[miRcluster]] %>%
+    mutate(cellCluster = ifelse(cellCluster == cellcluster, cellcluster, "ref")) %>%
+    select(-miRCluster)
+  # calculate FoldChange of the specified cluster vs the rest
+  FC <- data %>%
+    group_by(miRNA, cellCluster) %>%
+    summarize(mean = mean(log_exp)) %>%
+    ungroup() %>%
+    group_by(miRNA) %>%
+    summarize(logFC = mean[cellCluster==cellcluster]-mean[cellCluster =="ref"])
+  # calculate pvalues 
+  p_val <- data %>% 
+    group_by(miRNA) %>%
+    t_test(log_exp~cellCluster) %>%
+    adjust_pvalue(method = "fdr")
+  joined <- left_join(p_val, FC) %>% 
+    mutate(FC = 2^logFC) %>%
+    select(c(miRNA,FC, p.adj)) %>%
+    setNames(c("miRNA", "FC","pvalue"))
+  return(joined)
+}
+
+# compare Cluster 1A to 1B and 1C
+cl_1A <- summary_clusters(ls_miRCluster, 1, "A")
+# compare Cluster2B to 2A and 2C
+cl_2B <- summary_clusters(ls_miRCluster, 2, "B")
+# compare Cluster 4C to 4A and 4B
+cl_4B <- summary_clusters(ls_miRCluster, 4, "C")
+
+
+
+rbiomirgs_mrnascan(
+  objTitle = "cl_1A_predicted",
+  mir = cl_1A$miRNA,
+  sp = "hsa",
+  addhsaEntrez = FALSE,
+  queryType = "predicted",
+  parallelComputing = TRUE,
+  clusterType = "PSOCK"
+  )
+
+rbiomirgs_logistic(
+  objTitle = "mirna_mrna_iwls",
+  mirna_DE = cl_1A,
+  var_mirnaName = "miRNA",
+  var_mirnaFC = "FC",
+  var_mirnaP = "pvalue",
+  mrnalist = cl_1A_predicted_mrna_entrez_list,
+  mrna_Weight = NULL,
+  gs_file = "c2.cp.kegg.v7.2.entrez.gmt",
+  optim_method = "IWLS",
+  p.adj = "fdr",
+  parallelComputing = FALSE,
+  clusterType = "PSOCK"
+  )
+
+
+
+raw <- read.csv(file = "test_mouse_liver.csv", header = TRUE, stringsAsFactors = FALSE)
+rbiomirgs_mrnascan(objTitle = "mmu_liver_predicted", mir = raw$miRNA, sp = "mmu", addhsaEntrez = TRUE, queryType = "predicted", parallelComputing = TRUE, clusterType = "PSOCK")
+rbiomirgs_logistic(objTitle = "mirna_mrna_iwls", mirna_DE = raw, var_mirnaName = "miRNA", var_mirnaFC = "FC", var_mirnaP = "pvalue", mrnalist = mmu_liver_predicted_mrna_hsa_entrez_list, mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
+
+rbiomirgs_volcano(gsadfm = mirna_mrna_iwls_GS, topgsLabel = TRUE, n = 15, gsLabelSize = 3, sigColour = "blue", plotWidth = 250, plotHeight = 220, xLabel = "model coefficient")
+  
