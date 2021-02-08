@@ -502,7 +502,7 @@ two_way_ANOVA %>%
 ```
 
 Data was summarized using geometric mean and geometric sd to show data in the original scale but summarized with respect to the log-normal distribution of the miRNA expression values. Fold changes were calculated by dividing the geometric mean of the irradiated samples by the geometric mean of the control cells for each miRNA and cell line, respectively. 
-For easier computation and giving similar weight to downregulation as to upregulation, fold changes were log2 transformed (log2FC).The analogous threshold to FC > 1.5 is  |log2FC| >  0.585. 
+For easier computation and giving similar weight to downregulation as to upregulation, fold changes were log2 transformed (log2FC).The analogous threshold to FC > 1.5 is  |log2FC| > 0.585. 
 
 ```{r, message = FALSE}
 # summarize data with geometric mean and geometric sd for each miRNA in each cell line for irradiated cells and controls
