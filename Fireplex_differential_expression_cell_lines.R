@@ -348,16 +348,16 @@ ctrl_stats <- rbind(cl_1A, cl_2B, cl_4C) %>%
 
 # calculate GS enrichment for 50 random controls 
 n <- 50
-ctrl_list <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10)
+ctrl_list_KEGG <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10, 
+                         gs_file = "c2.cp.kegg.v7.2.entrez.gmt")
 
-# to facilitate downstream analysis the ctrl_list is saved in the working directory
+# to facilitate downstream analysis the ctrl_list is saved 
 # saveRDS(ctrl_list, file = "ctrl_list.rds")
-readRDS(file = "ctrl_list.rds")
+readRDS(file = "ctrl_list_KEGG.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_KEGG.rds
 
 # calculate the number of times a pathway is significantly enriched in the control analysis
 counts <- sapply(c(1:n), function(x){
-  ind <- as.data.frame(ctrl_list[,x]$res_GS) %>% filter(adj.p.val < 0.05)
-  tmp <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(GS %in% ind$GS) 
+  tmp <- as.data.frame(ctrl_list_KEGG[,x]$res_GS) %>% filter(adj.p.val < 0.05)
   tmp$GS
 }) %>% unlist() %>% table() 
 
@@ -367,10 +367,16 @@ prob[order(desc(prob))]
 
 # calculate the average number of target genes in the control samples 
 target_genes <- sapply(c(1:n), function(x){
-  as.data.frame(ctrl_list[,x]$number_target_genes) 
+  as.data.frame(ctrl_list_KEGG[,x]$number_target_genes) 
 }) %>% unlist() %>% mean()
 
-
+function(ls){
+  counts <- sapply(c(1:n), function(x){
+    ind <- as.data.frame(ls[,x]$res_GS) %>% filter(adj.p.val < 0.05)
+    tmp <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(GS %in% ind$GS) 
+    tmp$GS
+  }) %>% unlist() %>% table() 
+}
 
 
 
@@ -433,6 +439,14 @@ rbiomirgs_bar(
 
 #................
 # GO biological process pathways
+
+# calculate GS enrichment for 50 random controls 
+n <- 50
+ctrl_list <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10, 
+                         gs_file = "c2.cp.kegg.v7.2.entrez.gmt")
+
+
+
 
 rbiomirgs_logistic(
   objTitle = "cl_1A_predicted_mirna_mrna_iwls_GO_BP",
