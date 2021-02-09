@@ -2,13 +2,15 @@
 library(tidyverse)
 library(ggpubr)
 library(rstatix)
-# library(EnvStats)
+ # library(EnvStats)
 library(ComplexHeatmap)
 library(factoextra)
 library(FactoMineR)
 library(circlize)
 library(devtools)
 library(RBiomirGS)
+
+
 
 # source R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
@@ -323,14 +325,59 @@ cl_1A <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 1, "A"), FUN=drop_
 # compare Cluster2B to 2A and 2C, drop attributes and generate a data.frame
 cl_2B <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 2, "B"), FUN=drop_attr))
 # compare Cluster 4C to 4A and 4B, drop attributes and generate a data.frame
-cl_4B <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 4, "C"), FUN=drop_attr))
+cl_4C <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 4, "C"), FUN=drop_attr))
 
 
 ############################
 #   Pathway analysis       #
 ############################
 
-setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/Github/PhD/Data/Pathway Analysis/")
+setwd("C:/MBender/Arbeit/Github/PhD/Data/Pathway Analysis/")
+
+
+############################
+#       Controls           #
+############################
+dat_miRBase <- read.csv("mature_miRNA.csv", header = FALSE) %>%
+  mutate(miRNA = str_extract(V1, "(hsa-miR|hsa-let)-\\d{1,5}([:alpha:]+-\\dp|\\s|-\\dp|[:alpha:]+)")) %>% 
+  na.omit()
+
+# data frame containing FC and pvalue of the original data used for random sampling in controls
+ctrl_stats <- rbind(cl_1A, cl_2B, cl_4C) %>% 
+  select(-miRNA) 
+
+# calculate GS enrichment for 50 random controls 
+n <- 50
+ctrl_list <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10)
+
+# to facilitate downstream analysis the ctrl_list is saved in the working directory
+# saveRDS(ctrl_list, file = "ctrl_list.rds")
+readRDS(file = "ctrl_list.rds")
+
+# calculate the number of times a pathway is significantly enriched in the control analysis
+counts <- sapply(c(1:n), function(x){
+  ind <- as.data.frame(ctrl_list[,x]$res_GS) %>% filter(adj.p.val < 0.05)
+  tmp <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(GS %in% ind$GS) 
+  tmp$GS
+}) %>% unlist() %>% table() 
+
+# calculate the probability of a pathway being significantly expressed by chance (for 50 control groups)
+prob <- counts/n
+prob[order(desc(prob))]
+
+# calculate the average number of target genes in the control samples 
+target_genes <- sapply(c(1:n), function(x){
+  as.data.frame(ctrl_list[,x]$number_target_genes) 
+}) %>% unlist() %>% mean()
+
+
+
+
+
+
+############################
+#       Cluster 1          #
+############################
 
 # collect mRNA targets of the miRNAs upregulated in cluster 1A
 rbiomirgs_mrnascan(
@@ -341,9 +388,12 @@ rbiomirgs_mrnascan(
   clusterType = "PSOCK"
   )
 
+#................
+# KEGG pathways
+
 # calculate GS by logistic regression
 rbiomirgs_logistic(
-  objTitle = "cl_1A_predicted_mirna_mrna_iwls",
+  objTitle = "cl_1A_predicted_mirna_mrna_iwls_KEGG",
   mirna_DE = cl_1A, 
   var_mirnaName = "miRNA",
   var_mirnaFC = "FC", 
@@ -357,11 +407,9 @@ rbiomirgs_logistic(
   clusterType = "PSOCK"
   )
 
-cl_1A_predicted_mirna_mrna_iwls_GS %>% arrange(desc(coef))
-
 #plot results
 rbiomirgs_volcano(
-  gsadfm = cl_1A_predicted_mirna_mrna_iwls_GS, 
+  gsadfm = cl_1A_predicted_mirna_mrna_iwls_KEGG_GS, 
   topgsLabel = TRUE,
   n = 15,
   gsLabelSize = 3,
@@ -371,12 +419,10 @@ rbiomirgs_volcano(
   xLabel = "model coefficient"
   )
 
-# positiver model coefficient: pathways in control group stärker inhibiert
-# negativer model coefficient: pathways in "treatment" group stärker inhibiert
 
 # plot top enriched gene sets
 rbiomirgs_bar(
-  gsadfm = cl_1A_predicted_mirna_mrna_iwls_GS,
+  gsadfm = cl_1A_predicted_mirna_mrna_iwls_GS_KEGG,
   signif_only = F,
   gs.name = F,
   n = 15,
@@ -384,9 +430,66 @@ rbiomirgs_bar(
   plotHeight = 220,
  )
 
-# 
+
+#................
+# GO biological process pathways
+
+rbiomirgs_logistic(
+  objTitle = "cl_1A_predicted_mirna_mrna_iwls_GO_BP",
+  mirna_DE = cl_1A, 
+  var_mirnaName = "miRNA",
+  var_mirnaFC = "FC", 
+  var_mirnaP = "pvalue", 
+  mrnalist = cl_1A_predicted_mrna_entrez_list, 
+  mrna_Weight = NULL, 
+  gs_file = "c5.go.bp.v7.2.entrez.xls", 
+  optim_method = "IWLS", 
+  p.adj = "fdr", 
+  parallelComputing = FALSE, 
+  clusterType = "PSOCK"
+)
+
+
+# only take pathways that converged
+cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS_conv <- cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(converged == "Y")
+# number of significantly enriched pathways
+sum(cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS_conv$adj.p.val < 0.05)
+
+
+# plot volcano plot
+rbiomirgs_volcano(
+  gsadfm = cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS_conv , 
+  topgsLabel = TRUE,
+  n = 15,
+  gsLabelSize = 2,
+  sigColour = "#CD534CFF",
+  plotWidth = 250,
+  plotHeight = 220,
+  xLabel = "model coefficient"
+)
+
+
+rbiomirgs_bar(
+  gsadfm = cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS_conv,
+  signif_only = F,
+  gs.name = F,
+  # n = 15,
+  plotWidth = 250,
+  plotHeight = 220,
+)
+
+
+
+
+############################
+#       Cluster 2          #
+############################
+
+
+
+
+# positiver model coefficient: pathways in control group stärker inhibiert
+# negativer model coefficient: pathways in "treatment" group stärker inhibiert
+
 # Hypoxic naked mole-rat brains use microRNA to coordinate hypometabolic fuels and neuroprotective defenses
 # Paper for Guideline to report results from BiomirGS
-# use validated interactions? 
-
-# controls!!! 
