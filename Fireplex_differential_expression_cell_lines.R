@@ -438,7 +438,7 @@ ctrl_list_GO_BP <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$m
                          gs_file = "c5.go.bp.v7.2.entrez.xls")
 
 # to facilitate downstream analysis the ctrl_list is saved 
-saveRDS(ctrl_list_GO_BP, file = "ctrl_list_GO_BP.rds")
+# saveRDS(ctrl_list_GO_BP, file = "ctrl_list_GO_BP.rds")
 ctrl_list_GO_BP<- readRDS(file = "ctrl_list_GO_BP.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_GO_BP.rds
 
 # calculate bias and mean targeted genes
@@ -449,8 +449,6 @@ pathway_ctrl_summary(ctrl_list_GO_BP, n=n)
 ############################
 #       Cluster 1          #
 ############################
-
-
 
 
 rbiomirgs_logistic(
