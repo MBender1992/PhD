@@ -356,10 +356,8 @@ n <- 50
 ctrl_list_KEGG <- readRDS(file = "ctrl_list_KEGG.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_KEGG.rds
 
 # calculate bias and mean targeted genes
-pathway_ctrl_summary(ctrl_list_KEGG, n=n)
+res_ctrl <- pathway_ctrl_summary(ctrl_list_KEGG, n=n)
 
-# to do
-# filter out pathways that are enriched in more than 10% of negative controls?
 
 
 ############################
@@ -367,66 +365,80 @@ pathway_ctrl_summary(ctrl_list_KEGG, n=n)
 ############################
 
 # collect mRNA targets of the miRNAs upregulated in cluster 1A
-rbiomirgs_mrnascan(
-  objTitle = "cl_1A_predicted", 
-  mir = cl_1A$miRNA, sp = "hsa", 
-  queryType = "predicted", 
-  parallelComputing = TRUE, 
-  clusterType = "PSOCK"
-  )
-
-#................
-# KEGG pathways
+rbiomirgs_mrnascan(objTitle = "cl_1A_predicted", mir = cl_1A$miRNA, sp = "hsa", 
+  queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
 
 # calculate GS by logistic regression
-rbiomirgs_logistic(
-  objTitle = "cl_1A_predicted_mirna_mrna_iwls_KEGG",
-  mirna_DE = cl_1A, 
-  var_mirnaName = "miRNA",
-  var_mirnaFC = "FC", 
-  var_mirnaP = "pvalue", 
-  mrnalist = cl_1A_predicted_mrna_entrez_list, 
-  mrna_Weight = NULL, 
-  gs_file = "c2.cp.kegg.v7.2.entrez.gmt", 
-  optim_method = "IWLS", 
-  p.adj = "fdr", 
-  parallelComputing = FALSE, 
-  clusterType = "PSOCK"
-  )
+rbiomirgs_logistic(objTitle = "cl_1A_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_1A, 
+  var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_1A_predicted_mrna_entrez_list, 
+  mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+  p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
 
-#plot results
-rbiomirgs_volcano(
-  gsadfm = cl_1A_predicted_mirna_mrna_iwls_KEGG_GS, 
-  topgsLabel = TRUE,
-  n = 15,
-  gsLabelSize = 3,
-  sigColour = "blue",
-  plotWidth = 250,
-  plotHeight = 220,
-  xLabel = "model coefficient"
-  )
+# remove enriched pathways with a random enrichment of more than 10 %
+bias <- names(res_ctrl$bias[res_ctrl$bias > 0.1])
+cl_1A_plot <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias)
 
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_1A_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 3,
+  sigColour = "blue",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
 
 # plot top enriched gene sets
-rbiomirgs_bar(
-  gsadfm = cl_1A_predicted_mirna_mrna_iwls_GS_KEGG,
-  signif_only = F,
-  gs.name = F,
-  n = 15,
-  plotWidth = 250,
-  plotHeight = 220,
- )
+rbiomirgs_bar(gsadfm = cl_1A_plot,signif_only = F,gs.name = F,
+  n = 15,plotWidth = 250, plotHeight = 220,)
 
 ############################
 #       Cluster 2          #
 ############################
 
 
+# collect mRNA targets of the miRNAs upregulated in cluster 2B
+rbiomirgs_mrnascan(objTitle = "cl_2B_predicted", mir = cl_2B$miRNA, sp = "hsa", 
+                   queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
+
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_2B_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_2B, 
+                   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_2B_predicted_mrna_entrez_list, 
+                   mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+                   p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
+
+# remove enriched pathways with a random enrichment of more than 10 %
+cl_2B_plot <- cl_2B_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias)
+
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_2B_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 3,
+                  sigColour = "blue",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_2B_plot,signif_only = T,gs.name = T,
+              n = 15,plotWidth = 250, plotHeight = 220,)
 
 
 
+############################
+#       Cluster 4          #
+############################
 
 
+# collect mRNA targets of the miRNAs upregulated in cluster 4C
+rbiomirgs_mrnascan(objTitle = "cl_4C_predicted", mir = cl_4C$miRNA, sp = "hsa", 
+                   queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
+
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_4C_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_4C, 
+                   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_4C_predicted_mrna_entrez_list, 
+                   mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+                   p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
+
+# remove enriched pathways with a random enrichment of more than 10 %
+cl_4C_plot <- cl_4C_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias)
+
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_4C_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 3,
+                  sigColour = "blue",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_4C_plot,signif_only = T,gs.name = T,
+              n = 15,plotWidth = 250, plotHeight = 220,)
 
 ##################################
 #   Pathway analysis  (GO_BP)    #
