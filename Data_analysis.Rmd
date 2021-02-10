@@ -8,11 +8,11 @@ author: Marc Bender
 ---
 
 <style>
-p.caption {
-  font-size: 0.8em;
-}
+  p.caption {
+    font-size: 0.8em;
+  }
 body {
-text-align: justify}
+  text-align: justify}
 </style>
 
 
@@ -40,6 +40,12 @@ library(circlize)
 # PCA
 library(FactoMineR)
 library(factoextra)
+# pathway analysis
+library(RBiomirGS)
+#
+library(devtools)
+# source custom R functions
+source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
 ```
 
 
@@ -477,10 +483,75 @@ draw(Ht, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
 The combined cluster analysis showed a clear separation of miRNA expression depending on the cell line context (A: SCC-12/SCC-13,B: SCL-II,C: Met-1/Met-4).
 The miRNAs were clustered in 4 groups. Cluster 1 was upregulated in cell line cluster A compared to cluster B and C. Cluster 2 was upregulated in cell line cluster B compared to cluster A and C. Cluster 4 was upregulated in cell line cluster C compared to A and B. Cluster 3 showed an intermediate expression of miRNAs in Cluster B and C with the lowest expression values observed in Cluster A.
 
-Taken together these findings indicate distinct miRNA clusters representing a cell line specific epigenetic pattern and possibly reflecting differentiation, p53 status or other phenotypes associated with these patterns. To investigate the biological function of the miRNAs in each cluster an overrepresentation analysis was conducted to find enriched pathways targeted by these miRNAs. 
+Taken together these findings indicate distinct miRNA clusters representing a cell line specific epigenetic pattern and possibly reflecting differentiation, p53 status or other phenotypes associated with these patterns. To investigate the biological function of the miRNAs in each cluster gene set enrichment analysis was conducted to find enriched pathways targeted by these miRNAs (section 1.3.5). 
 
-**TABELLE MIT PATHWAYS EINFÜGEN**
 
+### 1.3.5 Gene set enrichment analysis (GSEA) with RBiomirGS
+
+To identify the summarized function of the differentially expressed miRNAs between cell lines, miRNA clusters obtained in 1.3.4.2 were further investigated. Three distinct clusters were selected - namely cluster 1A (representing miRNAs overexpressed in cell cluster 1 containing SCC12 and SCC13), cluster 2B (miRNAs overexpressed in cell line cluster 2 containing SCL-II) and cluster 4C (miRNAs overexpressed in cell line cluster 4 containg Met-1 and Met-4) - and data was extracted from the heatmap object:
+
+```{r}
+# extract clusters out of Heatmap object
+Ht_clusters <- extract_clusters(dat_scaled, Ht, sampleName = "ID", sampleClust = "cellCluster", 
+                                geneName = "miRNA", geneClust = "miRCluster")
+
+# construct new data frame containing cluster information
+dat_clusters <- left_join(filter(dat, Irradiation == "control"), Ht_clusters$cellCluster) %>%
+  left_join(Ht_clusters$miRCluster) %>% select(-c(Irradiation, cell_line)) %>%
+  mutate(miRNA = str_replace_all(miRNA,"let", "hsa-let"),
+         miRNA = str_replace_all(miRNA,"mir", "hsa-miR"))
+```
+
+Afterwards fold-changes and pvalues were calculated for upregulated miRNAs in each cell line cluster vs the remaining 2 (e.g. miRNAs in cluster 1A vs miRNAs in cluster 1B + 1C).
+
+```{r}
+# create list for each miRCluster
+ls_miRCluster <- split(dat_clusters, f = dat_clusters$miRCluster)         
+
+# compare Cluster 1A to 1B and 1C, drop attributes (important for the pathway analysis as a list threw an error) and generate a data.frame
+cl_1A <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 1, "A"), FUN=drop_attr))
+# compare Cluster2B to 2A and 2C, drop attributes and generate a data.frame
+cl_2B <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 2, "B"), FUN=drop_attr))
+# compare Cluster 4C to 4A and 4B, drop attributes and generate a data.frame
+cl_4C <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 4, "C"), FUN=drop_attr))
+```
+
+
+These dataframes containing the miRNA name and the fold-change and pvalue of the specified cell line cluster vs the other two for each miRNA were then used for GSEA with the R package *RBiomirGS*  providing a comprehensive tool for quantitative investigation of miRNA-mRNA interactions (Zhang 2018). Sources for gene sets used in this analyses were KEGG (Kyoto Encyclopedia of Genes and Genomes) and GO:BP (Gene Ontology: Biological Process) obtained from http://www.gsea-msigdb.org/gsea/msigdb/index.jsp as *entrez IDs* stored in .gmt files. As bioinformatic approaches are prone to false-positive results (Godard 2015) due to annotation and research bias concerning miRNAs and pathways: On the one hand certain miRNAs are researched more extensively leading to a higher number of identified targets, on the other hand there are certain pathways - mostly associated with cancer - which are highly related and therefore enriched in many studies even though different approaches were used in those studies. Thus, the need of negative controls is crucial to eliminate this bias. 
+
+In this study three clusters should be examined with a total of 30 miRNAs (cluster 1A: 10 miRNAs, cluster 2B: 6 miRNAs, cluster 4C: 14 miRNAs) resulting in an average number of 10 miRNAs in each cluster. Therefore 10 random mature miRNAs were chosen out of a total of 2635 miRNAs obtained from miRBase (www.mirbase.org) as controls. These miRNAs were assigned random FC and pvalue pairs out of the original analysis as this is required for the performed quantitative analysis. This process was repeated 50 times to ensure a sufficiently large number of control miRNA sets. As this iterative process is time consuming, once the control data was generated it was stored in an .rds object to be accessed later. To assess bias the number of times a pathway was enriched in these 50 control simulations was stored and divided by 50 to obtain an enrichment percentage. Pathways that were enriched in more than 10 % of controls were then omitted from the analysis to reduce bias. 
+
+#### 1.3.5.1 KEGG pathway analysis 
+
+Calculation of controls for KEGG analysis: 
+
+```{r}
+dat_miRBase <- read.csv("mature_miRNA.csv", header = FALSE) %>%
+  mutate(miRNA = str_extract(V1, "(hsa-miR|hsa-let)-\\d{1,5}([:alpha:]+-\\dp|\\s|-\\dp|[:alpha:]+)")) %>% 
+  na.omit()
+
+# data frame containing FC and pvalue of the original data used for random sampling in controls
+ctrl_stats <- rbind(cl_1A, cl_2B, cl_4C) %>% 
+  select(-miRNA) 
+
+# calculate GS enrichment for 50 random controls (containing 10 miRNAs each)
+n <- 50
+# ctrl_list_KEGG <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10,
+#                          gs_file = "c2.cp.kegg.v7.2.entrez.gmt")
+
+# to facilitate downstream analysis the ctrl_list is saved 
+# saveRDS(ctrl_list, file = "ctrl_list.rds")
+ctrl_list_KEGG <- readRDS(file = "ctrl_list_KEGG.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_KEGG.rds
+
+# calculate bias and mean targeted genes
+res_ctrl_KEGG <- pathway_ctrl_summary(ctrl_list_KEGG, n=n)
+```
+
+##### Cluster 1A 
+
+
+
+#### 1.3.5.2 GO:BP analysiss
 
 
 ## 1.4 Investigation of the irradiation effect
