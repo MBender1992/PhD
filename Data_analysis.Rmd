@@ -552,9 +552,9 @@ ctrl_list_KEGG <- readRDS(file = "ctrl_list_KEGG.rds") # file is available at ht
 # calculate bias and mean targeted genes
 res_ctrl_KEGG <- pathway_ctrl_summary(ctrl_list_KEGG, n=n)
 ```
-\
-\
 
+\
+\
 ##### Cluster 1A 
 
 Comparison of miRNAs upregulated in SCC-12/SCC-13 vs SCL-II, Met-1 and Met-4.
@@ -598,7 +598,8 @@ rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "mo
 
 Interpretation??? 
 
-
+\
+\
 ##### Cluster 2B 
 Comparison of miRNAs upregulated in  SCL-II vs. SCC-12, SCC-13 Met-1 and Met-4.
 
@@ -637,7 +638,9 @@ rbiomirgs_bar(gsadfm = cl_2B_KEGG_plot,signif_only = T,gs.name = T,xLabel = "mod
 ```
 ![**Fig. 6: KEGG pathway analysis of gene sets targeted by miRNAs in cluster 2B.** Volcano plot depicts the significance and directionality distribution for the KEGG pathway tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched KEGG pathways and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 15 significantly enriched pathways are labeled. Bar graph on the left shows all 34 significntly enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Cutoff: FDR adjusted p-value < 0.05. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_2B.png)
 
-
+\
+\
+#### Cluster 4C
 
 
 #### 1.3.5.2 GO:BP analysiss
