@@ -383,19 +383,19 @@ cl_1A_KEGG_plot <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% b
 
 
 #plot results (volcano plot)
-png("volcano_cl_1A.png", units="in", width=5, height=4, res=600)
+png("volcano_cl_1A_KEGG.png", units="in", width=5, height=4, res=600)
 rbiomirgs_volcano(gsadfm = cl_1A_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
   sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
 dev.off()
 
 # plot distribution of enriched gene sets
-png("volcano_bar_dist_cl_1A.png", units="in", width=6, height=3, res=600)
+png("volcano_bar_dist_cl_1A_KEGG.png", units="in", width=6, height=3, res=600)
 rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = F,gs.name = F,
   n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
 dev.off()
 
 # plot top enriched gene sets
-png("volcano_bar_top15cl_1A.png", units="in", width=4, height=4, res=600)
+png("volcano_bar_top15cl_1A_KEGG.png", units="in", width=4, height=4, res=600)
 rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
               yTxtSize = 7, n = 15, plotWidth = 250, plotHeight = 220)
 dev.off()
@@ -424,19 +424,19 @@ sum(cl_2B_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)
 cl_2B_KEGG_plot <- cl_2B_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
 
 #plot results (volcano plot)
-png("volcano_cl_2B.png", units="in", width=5, height=4, res=600)
+png("volcano_cl_2B_KEGG.png", units="in", width=5, height=4, res=600)
 rbiomirgs_volcano(gsadfm = cl_2B_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
                   sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
 dev.off()
 
 # plot distribution of enriched gene sets
-png("volcano_bar_dist_cl_2B.png", units="in", width=6, height=3, res=600)
+png("volcano_bar_dist_cl_2B_KEGG.png", units="in", width=6, height=3, res=600)
 rbiomirgs_bar(gsadfm = cl_2B_KEGG_plot,signif_only = F,gs.name = F,
               n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
 dev.off()
 
 # plot top enriched gene sets
-png("volcano_bar_top15cl_2B.png", units="in", width=5, height=4, res=600)
+png("volcano_bar_top15cl_2B_KEGG.png", units="in", width=5, height=4, res=600)
 rbiomirgs_bar(gsadfm = cl_2B_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
               yTxtSize = 7, n ="all", plotWidth = 250, plotHeight = 220)
 dev.off()
@@ -465,19 +465,19 @@ sum(cl_4C_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)
 cl_4C_KEGG_plot <- cl_4C_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
 
 #plot results (volcano plot)
-png("volcano_cl_4C.png", units="in", width=5, height=4, res=600)
+png("volcano_cl_4C_KEGG.png", units="in", width=5, height=4, res=600)
 rbiomirgs_volcano(gsadfm = cl_4C_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
                   sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
 dev.off()
 
 # plot distribution of enriched gene sets
-png("volcano_bar_dist_cl_4C.png", units="in", width=6, height=3, res=600)
+png("volcano_bar_dist_cl_4C_KEGG.png", units="in", width=6, height=3, res=600)
 rbiomirgs_bar(gsadfm = cl_4C_KEGG_plot,signif_only = F,gs.name = F,
               n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
 dev.off()
 
 # plot top enriched gene sets
-png("volcano_bar_top15cl_4C.png", units="in", width=5, height=4, res=600)
+png("volcano_bar_top15cl_4C_KEGG.png", units="in", width=5, height=4, res=600)
 rbiomirgs_bar(gsadfm = cl_4C_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
               yTxtSize = 7, n = "all", plotWidth = 250, plotHeight = 220)
 dev.off()
@@ -525,17 +525,26 @@ sum(cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS$adj.p.val < 0.05)
 
 # remove enriched pathways with a random enrichment of more than 10 % and only keep pathways that converged
 bias_GO_BP <- names(res_ctrl_GO_BP$bias[res_ctrl_GO_BP$bias > 0.1])
-cl_1A_Go_BP_plot <- cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
-
-# plot volcano plot
-rbiomirgs_volcano(gsadfm = cl_1A_Go_BP_plot , topgsLabel = TRUE, n = 15,gsLabelSize = 2,
-  sigColour = "blue",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
-
-# plot barplot
-rbiomirgs_bar(gsadfm = cl_1A_Go_BP_plot,signif_only = F,gs.name = F,# n = 15,
-  plotWidth = 250,  plotHeight = 220)
+cl_1A_GO_BP_plot <- cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
 
 
+#plot results (volcano plot)
+png("volcano_cl_1A_GO_BP.png", units="in", width=5, height=4.5, res=600)
+rbiomirgs_volcano(gsadfm = cl_1A_GO_BP_plot,topgsLabel = TRUE,n = 5,gsLabelSize = 1.8,
+                  sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+dev.off()
+
+# plot distribution of enriched gene sets
+png("volcano_bar_dist_cl_1A_GO_BP.png", units="in", width=6, height=3, res=600)
+rbiomirgs_bar(gsadfm = cl_1A_GO_BP_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+dev.off()
+
+# plot top enriched gene sets
+png("volcano_bar_top50cl_1A_GO_BP.png", units="in", width=7, height=4.5, res=600)
+rbiomirgs_bar(gsadfm = cl_1A_GO_BP_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 50, plotWidth = 250, plotHeight = 220)
+dev.off()
 
 
 ############################
@@ -552,15 +561,25 @@ rbiomirgs_logistic(objTitle = "cl_2B_predicted_mirna_mrna_iwls_GO_BP",mirna_DE =
 sum(cl_2B_predicted_mirna_mrna_iwls_GO_BP_GS$adj.p.val < 0.05)
 
 # remove enriched pathways with a random enrichment of more than 10 % and only keep pathways that converged
-cl_2B_Go_BP_plot <- cl_2B_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
+cl_2B_GO_BP_plot <- cl_2B_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
 
-# plot volcano plot
-rbiomirgs_volcano(gsadfm = cl_2B_Go_BP_plot , topgsLabel = TRUE, n = 15,gsLabelSize = 2,
+#plot results (volcano plot)
+png("volcano_cl_2B_GO_BP.png", units="in", width=5, height=4.55, res=600)
+rbiomirgs_volcano(gsadfm = cl_2B_GO_BP_plot,topgsLabel = TRUE,n = 10,gsLabelSize = 1.8,
                   sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+dev.off()
 
-# plot barplot
-rbiomirgs_bar(gsadfm = cl_2B_Go_BP_plot,signif_only = F,gs.name = F,# n = 15,
-              plotWidth = 250,  plotHeight = 220)
+# plot distribution of enriched gene sets
+png("volcano_bar_dist_cl_2B_GO_BP.png", units="in", width=6, height=3, res=600)
+rbiomirgs_bar(gsadfm = cl_2B_GO_BP_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+dev.off()
+
+# plot top enriched gene sets
+png("volcano_bar_top50cl_2B_GO_BP.png", units="in", width=8, height=4.55, res=600)
+rbiomirgs_bar(gsadfm = cl_2B_GO_BP_plot,signif_only = T,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 50, plotWidth = 250, plotHeight = 220)
+dev.off()
 
 
 
@@ -580,15 +599,26 @@ rbiomirgs_logistic(objTitle = "cl_4C_predicted_mirna_mrna_iwls_GO_BP",mirna_DE =
 sum(cl_4C_predicted_mirna_mrna_iwls_GO_BP_GS$adj.p.val < 0.05)
 
 # remove enriched pathways with a random enrichment of more than 10 % and only keep pathways that converged
-cl_4C_Go_BP_plot <- cl_4C_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
+cl_4C_GO_BP_plot <- cl_4C_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
 
-# plot volcano plot
-rbiomirgs_volcano(gsadfm = cl_4C_Go_BP_plot , topgsLabel = TRUE, n = 15,gsLabelSize = 2,
+#plot results (volcano plot)
+png("volcano_cl_4C_GO_BP.png", units="in", width=5, height=4.5, res=600)
+rbiomirgs_volcano(gsadfm = cl_4C_GO_BP_plot,topgsLabel = TRUE,n = 10,gsLabelSize = 1.8,
                   sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+dev.off()
 
-# plot barplot
-rbiomirgs_bar(gsadfm = cl_4C_Go_BP_plot,signif_only = F,gs.name = F,# n = 15,
-              plotWidth = 250,  plotHeight = 220)
+# plot distribution of enriched gene sets
+png("volcano_bar_dist_cl_4C_GO_BP.png", units="in", width=6, height=3, res=600)
+rbiomirgs_bar(gsadfm = cl_4C_GO_BP_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+dev.off()
+
+# plot top enriched gene sets
+png("volcano_bar_top50cl_4C_GO_BP.png", units="in", width=8, height=4.5, res=600)
+rbiomirgs_bar(gsadfm = cl_4C_GO_BP_plot,signif_only = T,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 50, plotWidth = 250, plotHeight = 220)
+dev.off()
+
 
 # positiver model coefficient: pathways in control group stärker inhibiert
 # negativer model coefficient: pathways in "treatment" group stärker inhibiert

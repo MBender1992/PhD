@@ -582,7 +582,7 @@ cl_1A_KEGG_plot <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% b
 ```
 
 
-In total 13 KEGG pathways were significantly enriched in the gene set targeted by the 10 miRNAs in cluster 1A. One pathway (KEGG_Glioma) was excluded from the downstream analysis as it was enriched in more than 10 % of control simulations (also for the analysis in cluster 2B and cluster 4C).  
+In total 13 (12 after bias correction) KEGG pathways were significantly enriched in the gene set targeted by the 10 miRNAs in cluster 1A. One pathway (KEGG_Glioma) was excluded from the downstream analysis as it was enriched in more than 10 % of control simulations (also for the analysis in cluster 2B and cluster 4C).  
 
 ```{r}
 #plot results (volcano plot)
@@ -595,7 +595,7 @@ rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = F,gs.name = F,
 rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
               yTxtSize = 7, n = 15, plotWidth = 250, plotHeight = 220)
 ```
-![**Fig. 5: KEGG pathway analysis of gene sets targeted by miRNAs in cluster 1A.** Volcano plot depicts the significance and directionality distribution for the KEGG pathway tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched KEGG pathways and the bar graph in the volcano plot shows the overall distribution of model coefficient. The 13 significantly enriched pathways are labeled. Bar graph on the left shows these 13 enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Cutoff: FDR adjusted p-value < 0.05. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_1A.png)
+![**Fig. 5: KEGG pathway analysis of gene sets targeted by miRNAs in cluster 1A.** Volcano plot depicts the significance and directionality distribution for the KEGG pathway tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched KEGG pathways and the bar graph in the volcano plot shows the overall distribution of model coefficient. The 12 significantly enriched pathways are labeled. Bar graph on the left shows these 12 enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_1A.png)
 
 Interpretation??? 
 
@@ -623,7 +623,7 @@ sum(cl_2B_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)
 cl_2B_KEGG_plot <- cl_2B_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
 ```
 
-In total 34 KEGG pathways were significantly enriched in cluster 2B. 
+In total 34 (33 after bias correction) KEGG pathways were significantly enriched in cluster 2B. 
 
 ```{r}
 #plot results (volcano plot)
@@ -638,16 +638,185 @@ rbiomirgs_bar(gsadfm = cl_2B_KEGG_plot,signif_only = F,gs.name = F,
 rbiomirgs_bar(gsadfm = cl_2B_KEGG_plot,signif_only = T,gs.name = T,xLabel = "model coefficient",
               yTxtSize = 7, n = "all", plotWidth = 250, plotHeight = 220)
 ```
-![**Fig. 6: KEGG pathway analysis of gene sets targeted by miRNAs in cluster 2B.** Volcano plot depicts the significance and directionality distribution for the KEGG pathway tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched KEGG pathways and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 15 significantly enriched pathways are labeled. Bar graph on the left shows all 34 significntly enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Cutoff: FDR adjusted p-value < 0.05. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_2B.png)
+![**Fig. 6: KEGG pathway analysis of gene sets targeted by miRNAs in cluster 2B.** Volcano plot depicts the significance and directionality distribution for the KEGG pathway tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched KEGG pathways and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 15 significantly enriched pathways are labeled. Bar graph on the left shows all 33 significntly enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_2B.png)
+
+Interpretation??? 
+
+\
+\
+
+#### Cluster 4C
+Comparison of miRNAs upregulated in  Met-1 and Met-4 vs. SCC-12, SCC-13 and SCL-II.
+
+```{r}
+# collect mRNA targets of the miRNAs upregulated in cluster 4C
+rbiomirgs_mrnascan(objTitle = "cl_4C_predicted", mir = cl_4C$miRNA, sp = "hsa", 
+                   queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
+
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_4C_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_4C, 
+                   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_4C_predicted_mrna_entrez_list, 
+                   mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+                   p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
+
+# total number of significantly enriched pathways
+sum(cl_4C_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)
+
+# remove enriched pathways with a random enrichment of more than 10 %
+cl_4C_KEGG_plot <- cl_4C_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
+```
+
+In total 32 (31 after bias correction) KEGG pathways were significantly enriched in cluster 4C. 
+
+```{r}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_4C_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
+                  sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_4C_KEGG_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_4C_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = "all", plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 7: KEGG pathway analysis of gene sets targeted by miRNAs in cluster 4C.** Volcano plot depicts the significance and directionality distribution for the KEGG pathway tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched KEGG pathways and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 15 significantly enriched pathways are labeled. Bar graph on the left shows all 31 significntly enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_4C.png)
+
+Interpretation??? 
+
+\
+\
+
+#### 1.3.5.2 GO:BP analysis
+
+Calculation of controls for KEGG analysis: 
+```{r}
+# calculate GS enrichment for 50 random controls 
+n <- 50
+# ctrl_list_GO_BP <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10, 
+#                          gs_file = "c5.go.bp.v7.2.entrez.xls")
+
+# to facilitate downstream analysis the ctrl_list is saved 
+# saveRDS(ctrl_list_GO_BP, file = "ctrl_list_GO_BP.rds")
+ctrl_list_GO_BP<- readRDS(file = "ctrl_list_GO_BP.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_GO_BP.rds
+
+# calculate bias and mean targeted genes
+res_ctrl_GO_BP <-pathway_ctrl_summary(ctrl_list_GO_BP, n=n)
+```
+
+\
+\
+
+#### Cluster 1A 
+
+```{r}
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_1A_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_1A, 
+  var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_1A_predicted_mrna_entrez_list, 
+  mrna_Weight = NULL,gs_file = "c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
+  p.adj = "fdr",parallelComputing = FALSE,clusterType = "PSOCK")
+
+# number of enriched GO terms
+sum(cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS$adj.p.val < 0.05)
+
+# remove enriched pathways with a random enrichment of more than 10 % and only keep pathways that converged
+bias_GO_BP <- names(res_ctrl_GO_BP$bias[res_ctrl_GO_BP$bias > 0.1])
+cl_1A_Go_BP_plot <- cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
+```
+
+In total 501 (442 after bias correction) GO terms (biological process) were significantly enriched. 59 Go terms were randomly enriched in more than 10 % of control simulations and omitted from the analysis (also for cluster 2B and 4C).
+
+```{r}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_1A_GO_BP_plot,topgsLabel = TRUE,n = 5,gsLabelSize = 1.8,
+                  sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_1A_GO_BP_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_1A_GO_BP_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 50, plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 8: GO:BP analysis of gene sets targeted by miRNAs in cluster 1A.** Volcano plot depicts the significance and directionality distribution for the GO terms  tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched GO terms and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 5 significantly enriched pathways are labeled. Bar graph on the left shows the top 50 enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/GO_BP_cl_1A.png)
+
+\
+\
+
+#### Cluster 2B
+```{r}
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_2B_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_2B, 
+                   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_2B_predicted_mrna_entrez_list, 
+                   mrna_Weight = NULL,gs_file = "c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
+                   p.adj = "fdr",parallelComputing = FALSE,clusterType = "PSOCK")
+
+# number of enriched GO terms
+sum(cl_2B_predicted_mirna_mrna_iwls_GO_BP_GS$adj.p.val < 0.05)
+
+# remove enriched pathways with a random enrichment of more than 10 % and only keep pathways that converged
+cl_2B_Go_BP_plot <- cl_2B_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
+
+```
+
+In total 525 (466 after bias correction) GO terms were enriched in cluster 2B. 
+
+```{r}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_2B_GO_BP_plot,topgsLabel = TRUE,n = 10,gsLabelSize = 1.8,
+                  sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_2B_GO_BP_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_2B_GO_BP_plot,signif_only = T,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 50, plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 9: GO:BP analysis of gene sets targeted by miRNAs in cluster 2B.** Volcano plot depicts the significance and directionality distribution for the GO terms  tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched GO terms and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 10 significantly enriched pathways are labeled. Bar graph on the left shows the top 50 enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/GO_BP_cl_2B.png)
+
 
 \
 \
 
 #### Cluster 4C
 
+```{r}
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_4C_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_4C, 
+                   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_4C_predicted_mrna_entrez_list, 
+                   mrna_Weight = NULL,gs_file = "c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
+                   p.adj = "fdr",parallelComputing = FALSE,clusterType = "PSOCK")
 
-#### 1.3.5.2 GO:BP analysis
+# number of enriched GO terms
+sum(cl_4C_predicted_mirna_mrna_iwls_GO_BP_GS$adj.p.val < 0.05)
 
+# remove enriched pathways with a random enrichment of more than 10 % and only keep pathways that converged
+cl_4C_Go_BP_plot <- cl_4C_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
+```
+
+In total 766 (707 after bias correction) GO terms were enriched in cluster 4C. 
+
+```{r}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_4C_GO_BP_plot,topgsLabel = TRUE,n = 10,gsLabelSize = 1.8,
+                  sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_4C_GO_BP_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_4C_GO_BP_plot,signif_only = T,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 50, plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 10: GO:BP analysis of gene sets targeted by miRNAs in cluster 4C.** Volcano plot depicts the significance and directionality distribution for the GO terms  tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched GO terms and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 10 significantly enriched pathways are labeled. Bar graph on the left shows the top 50 enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/GO_BP_cl_4C.png)
+
+\
+\
 
 ## 1.4 Investigation of the irradiation effect
 
@@ -685,7 +854,7 @@ folds <-  dat_summary %>%
   setNames(c("cell_line", "miRNA","FC", "log2FC"))
 ```
 
-Combining the criterea for different expression as described in section 1.4, four miRNAs remained (Fig. 5).
+Combining the criterea for different expression as described in section 1.4, four miRNAs remained (Fig. 11).
 
 ```{r, message = FALSE}
 # t-test for the interaction effect
@@ -770,7 +939,7 @@ dat_plot %>%
 ```
 
 
-![**Fig. 5: miRNA expression of the differentially expressed miRNAs with an interaction effect of cell line and irradiation in the two-way ANOVA (section 1.3.2).** KAUVIR: cells irradiated with the irradiation device for the KAUVIR project. Results of interaction term in two-way ANOVA after fdr-adjustment are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;&#42;: p < 0.001, &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_interaction.png)
+![**Fig. 11: miRNA expression of the differentially expressed miRNAs with an interaction effect of cell line and irradiation in the two-way ANOVA (section 1.3.2).** KAUVIR: cells irradiated with the irradiation device for the KAUVIR project. Results of interaction term in two-way ANOVA after fdr-adjustment are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;&#42;: p < 0.001, &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_interaction.png)
 
 All 4 miRNAs were upregulated in at least one cell line (miR-126-3p in SCC-13, miR-146a-5p in SCL-II, miR-30a-3p in SCC-12 and SCL-II and miR-7-5p in SCL-II). Although not significantly changed the same trend of upregulation can be observed for other cell lines as well, with an exception of miR-126-3p in Met-1 and SCC-12, miR-146a-5p in SCC-12 and SCC-13 and miR-7-5p in Met-1 and SCC-13 (which even shows a downregulation after irradiation, however not significantly). 
 \
@@ -825,7 +994,7 @@ $$
 
 ### 1.4.2 Main effect Irradiation
 
-Subsequently the irradiation main effect has been investigated to analyze miRNAs with a common UV-response in the different cell types (Fig. 6). 
+Subsequently the irradiation main effect has been investigated to analyze miRNAs with a common UV-response in the different cell types (Fig. 12). 
 
 ```{r, message = FALSE}
 # filter miRNAs with a significant irradiation term but without significant interaction term
@@ -890,7 +1059,7 @@ dat_plot %>%
   ylab("miRNA expression (a.u.)")
 ```
 
-![**Fig. 6: miRNA expression of the differentially expressed miRNAs with an irradiation main effect in the two-way ANOVA but without significant interaction term (section 1.3.2).** KAUVIR: cells irradiated with the irradiation device for the KAUVIR project. Results of irradiation term in two-way ANOVA after fdr-adjustment are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_irradiation.png)
+![**Fig. 12: miRNA expression of the differentially expressed miRNAs with an irradiation main effect in the two-way ANOVA but without significant interaction term (section 1.3.2).** KAUVIR: cells irradiated with the irradiation device for the KAUVIR project. Results of irradiation term in two-way ANOVA after fdr-adjustment are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_irradiation.png)
 
 Significant upregulation could be detected for miR-135b-5p in SCC-13, miR-183-5p in SCC-13, miR-200a-3p in SCC-12, miR-30d-5p in SCC-13 and miR-424-5p in SCC-13. The miRNA expression shows a similar trend in the other cell lines as well with an exception of miR-135b-5p in Met-1 and SCL-II, miR-200a-3p in SCC-13 and miR-424-5p in Met-1. miR-205-5p is the only miRNA exhibiting a downregulation in all cell lines, with a significant downregulation in SCL-II. Furthermore, miR-205-5p shows the most significant general irradiation effect with p = 0.000253 in the two-way ANOVA. In summary UV irradiation seems to induce miRNA expression more often than inhibting miRNA expression with miR-205-5p being the only significantly downregulated miRNA out of totally 10 differentially expressed miRNAs between treated and control samples (results from section 1.4.1 and 1.4.2 combined). 
 
@@ -974,7 +1143,7 @@ ddCT <- dat_dCT %>%
   rename(miRNA = gene_name) 
 ```
 
-ΔΔCt-values were tested for significant differences from 0 with a one-sample t-test vs. 0 and compared to the Fireplex results (Fig. 5 & Fig. 6).
+ΔΔCt-values were tested for significant differences from 0 with a one-sample t-test vs. 0 and compared to the Fireplex results (Fig. 11 & Fig. 12).
 
 ```{r}
 # one-sided t-test vs null
@@ -987,7 +1156,7 @@ ddCT %>% group_by(cell_line,miRNA) %>%
 ```{r}
 # extract fold changes for each miRNA and cell line from Fireplex analysis
 logFC_fireplex <- folds %>%
-  filter(miRNA %in% c(ddCT$miRNA, "mir-30d-5p") %>%
+  filter(miRNA %in% c(ddCT$miRNA, "mir-30d-5p")) %>%
   select(-FC) %>%
   mutate(cell_line = str_replace_all(cell_line, "_","-")) %>%
   setNames(c("cell_line","miRNA", "logFC_Fireplex")) 
@@ -1035,13 +1204,13 @@ dat_plot %>%
   ylab("log2-FC") 
 
 ```
-![**Fig. 7: qPCR validation of Fireplex results (Fig 5. & Fig.6).** Shown are log2FC of irradiated samples in relation to controls. One sample t-test was used for comparison of log2FC versus 0. Red squares show the mean log2FC of irradiated vs. control samples in the Fireplex analysis. For readability, miRNA expression with |log2FC| > 2 in the Fireplex analysis is indicated by arrows.  &#42;&#42;: p < 0.01, &#42;: p < 0.05. n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_qPCR_validation.png)
+![**Fig. 13: qPCR validation of Fireplex results (Fig 11. & Fig.12).** Shown are log2FC of irradiated samples in relation to controls. One sample t-test was used for comparison of log2FC versus 0. Red squares show the mean log2FC of irradiated vs. control samples in the Fireplex analysis. For readability, miRNA expression with |log2FC| > 2 in the Fireplex analysis is indicated by arrows.  &#42;&#42;: p < 0.01, &#42;: p < 0.05. n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_qPCR_validation.png)
 
 Generally the qPCR results validate the Fireplex results as indicated by a similar direction of miRNA expression (when boxplots and red squares show common downregulation or upregulation, respectively). Contradictory results are present for miRNA-7-5p in SCC-12 (Fireplex: upregulated qPCR: downregulated), for miR-126-3p in SCC-12 (Fireplex: not changed, qPCR: upregulated) and SCC-13 (Fireplex: upregulated, qPCR: downregulated), for miR-135b-5p in SCC-13 (Fireplex: upregulated, qPCR: not changed), for miR-146-5p in SCC-12 (Fireplex: upregulated, qPCR: downregulated) and SCC-13 (Fireplex: downregulated, qPCR: upregulated), for miR 200a-3p in SCL-II (Fireplex: upregulated, qPCR: downregulated) and for miR-424-5p in SCC-13 (Fireplex: upregulated, qPCR: downregulated) and SCL-II (Fireplex: upregulated, qPCR: not changed). The best overlap between Fireplex and qPCR result could be observed for miR-205-5p with the log2FC of the Fireplex analysis being within the data range covered by the boxplot for each cell line. Because of this consistent downregulation and the role of miR-205-5p in cancer progression and metastasis in various cancer entitities, the role of this miRNA was chosen to be further elucidated in the context of cSCC progression (see section 2). 
 
 ##  1.5 UV sensitivity of cell lines
 
-As indicated in section 1.4.2 there were differences in the UV-responsiveness of different cell lines. This phenomenon was more thoroughly investigated in this section. To this end the absolute fold-change (to avoid negative and positive fold-changes cancelling out) between irradiated and control cells  of all miRNAs between was averaged for each cell line and compared (Fig. 8). 
+As indicated in section 1.4.2 there were differences in the UV-responsiveness of different cell lines. This phenomenon was more thoroughly investigated in this section. To this end the absolute fold-change (to avoid negative and positive fold-changes cancelling out) between irradiated and control cells  of all miRNAs between was averaged for each cell line and compared (Fig. 14). 
 
 ```{r}
 # convert log2-fold changes to absolute log2-fold changes
@@ -1119,11 +1288,11 @@ dat_labelled %>%
   ylab("absolute log2-FC") +
   scale_y_continuous(limits = c(0,3.3), breaks = seq(0,3,0.5))
 ```
-![**Fig. 8: UV-sensitivity of cell lines.** The three most UV-responsive miRNAs are shown in red with name labels. n = 40. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/UV_sensitivity.png)
+![**Fig. 14: UV-sensitivity of cell lines.** The three most UV-responsive miRNAs are shown in red with name labels. n = 40. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/UV_sensitivity.png)
 
 
 SCC-12 and SCC-13 show significantly higher absolute log2FC indicating a higher UV-responsiveness of these cell lines. Although not significantly changed, SCL-II also shows higher UV-sensitivity than Met-1 and Met-4. There are minor differences between cell lines in respect to which miRNAs are altered the most after UV irradiation, however miR-503-5p, miR-146a-5p and miR-30a-3p exhibit the highest differences in almost all cell lines. The lower UV-response in Met-1 and Met-4 might be due to a functional p53 protein and better DNA damage response.
 
 
 
-
+# 2 Knockdown of miR-205-5p
