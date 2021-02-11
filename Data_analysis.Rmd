@@ -490,7 +490,7 @@ Taken together these findings indicate distinct miRNA clusters representing a ce
 
 To identify the summarized function of the differentially expressed miRNAs between cell lines, miRNA clusters obtained in 1.3.4.2 were further investigated. Three distinct clusters were selected - namely cluster 1A (representing miRNAs overexpressed in cell cluster 1 containing SCC12 and SCC13), cluster 2B (miRNAs overexpressed in cell line cluster 2 containing SCL-II) and cluster 4C (miRNAs overexpressed in cell line cluster 4 containg Met-1 and Met-4) - and data was extracted from the heatmap object:
 
-```{r}
+```{r, message = FALSE}
 # extract clusters out of Heatmap object
 Ht_clusters <- extract_clusters(dat_scaled, Ht, sampleName = "ID", sampleClust = "cellCluster", 
                                 geneName = "miRNA", geneClust = "miRCluster")
@@ -504,7 +504,7 @@ dat_clusters <- left_join(filter(dat, Irradiation == "control"), Ht_clusters$cel
 
 Afterwards fold-changes and pvalues were calculated for upregulated miRNAs in each cell line cluster vs the remaining 2 (e.g. miRNAs in cluster 1A vs miRNAs in cluster 1B + 1C).
 
-```{r}
+```{r, message = FALSE}
 # create list for each miRCluster
 ls_miRCluster <- split(dat_clusters, f = dat_clusters$miRCluster)         
 
@@ -522,12 +522,16 @@ These dataframes containing the miRNA name and the fold-change and pvalue of the
 Bioinformatic approaches are prone to false-positive results (Godard 2015) due to annotation and research bias concerning miRNAs and pathways: On the one hand certain miRNAs are researched more extensively leading to a higher number of identified targets, on the other hand there are certain pathways - mostly associated with cancer - which are highly related and therefore enriched in many studies even though different approaches were used in those studies. Thus, the need of negative controls is crucial to eliminate this bias. 
 
 In this study three clusters should be examined with a total of 30 miRNAs (cluster 1A: 10 miRNAs, cluster 2B: 6 miRNAs, cluster 4C: 14 miRNAs) resulting in an average number of 10 miRNAs in each cluster. Therefore 10 random mature miRNAs were chosen out of a total of 2635 miRNAs obtained from miRBase (www.mirbase.org) as controls. These miRNAs were assigned random FC and pvalue pairs out of the original analysis as this is required for the performed quantitative analysis. This process was repeated 50 times to ensure a sufficiently large number of control miRNA sets. As this iterative process is time consuming, once the control data was generated it was stored in an .rds object to be accessed later. To assess bias, the number of times a pathway was enriched in these 50 control simulations was stored and divided by 50 to obtain an enrichment percentage. Pathways that were enriched in more than 10 % of controls were then omitted from the analysis to reduce bias. 
+\
+\
+
 
 #### 1.3.5.1 KEGG pathway analysis 
 
 Calculation of controls for KEGG analysis: 
 
 ```{r}
+# load data with mature miRNAs from miRBase
 dat_miRBase <- read.csv("mature_miRNA.csv", header = FALSE) %>%
   mutate(miRNA = str_extract(V1, "(hsa-miR|hsa-let)-\\d{1,5}([:alpha:]+-\\dp|\\s|-\\dp|[:alpha:]+)")) %>% 
   na.omit()
@@ -548,10 +552,52 @@ ctrl_list_KEGG <- readRDS(file = "ctrl_list_KEGG.rds") # file is available at ht
 # calculate bias and mean targeted genes
 res_ctrl_KEGG <- pathway_ctrl_summary(ctrl_list_KEGG, n=n)
 ```
+\
+\
 
 ##### Cluster 1A 
 
+```{r}
+# calculation of GSEA for miRNAs upregulated in cluster 1A 
 
+# collect mRNA targets of the miRNAs upregulated in cluster 1A
+rbiomirgs_mrnascan(objTitle = "cl_1A_predicted", mir = cl_1A$miRNA, sp = "hsa", 
+  queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
+
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_1A_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_1A, 
+  var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_1A_predicted_mrna_entrez_list, 
+  mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+  p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
+
+# total number of significantly enriched pathways
+sum(cl_1A_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)
+
+# remove enriched pathways with a random enrichment of more than 10 %
+bias_KEGG <- names(res_ctrl_KEGG$bias[res_ctrl_KEGG$bias > 0.1])
+cl_1A_KEGG_plot <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
+```
+
+
+In total 13 KEGG pathways were significantly enriched in the gene set targeted by the 10 miRNAs in cluster 1A. One pathway (KEGG_Glioma) was excluded from the downstream analysis as it was enriched in more than 10 % of control simulations.  
+
+```{r}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_1A_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
+  sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = F,gs.name = F,
+  n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 15, plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 5: KEGG pathway analysis of gene sets targeted by miRNAs in cluster 1A.** Volcano plot depicts the significance and directionality distribution for the KEGG pathway tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched KEGG pathways and the bar graph in the volcano plot shows the overall distribution of model coefficient. The 13 significantly enriched pathways are labeled. Bar graph on the left shows these 13 enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Cutoff: FDR adjusted p-value < 0.05. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_1A.png)
+
+
+
+##### Cluster 2B 
+![**Fig. 6: ** ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_2B.png)
 
 #### 1.3.5.2 GO:BP analysiss
 
