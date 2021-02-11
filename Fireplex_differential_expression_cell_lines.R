@@ -417,6 +417,9 @@ rbiomirgs_logistic(objTitle = "cl_2B_predicted_mirna_mrna_iwls_KEGG",mirna_DE = 
                    mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
                    p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
 
+# total number of significantly enriched pathways
+sum(cl_2B_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)
+
 # remove enriched pathways with a random enrichment of more than 10 %
 cl_2B_KEGG_plot <- cl_2B_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
 
@@ -435,7 +438,7 @@ dev.off()
 # plot top enriched gene sets
 png("volcano_bar_top15cl_2B.png", units="in", width=5, height=4, res=600)
 rbiomirgs_bar(gsadfm = cl_2B_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
-              yTxtSize = 7, n = 15, plotWidth = 250, plotHeight = 220)
+              yTxtSize = 7, n ="all", plotWidth = 250, plotHeight = 220)
 dev.off()
 
 
@@ -455,6 +458,9 @@ rbiomirgs_logistic(objTitle = "cl_4C_predicted_mirna_mrna_iwls_KEGG",mirna_DE = 
                    mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
                    p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
 
+# total number of significantly enriched pathways
+sum(cl_4C_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)
+
 # remove enriched pathways with a random enrichment of more than 10 %
 cl_4C_KEGG_plot <- cl_4C_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
 
@@ -473,7 +479,7 @@ dev.off()
 # plot top enriched gene sets
 png("volcano_bar_top15cl_4C.png", units="in", width=5, height=4, res=600)
 rbiomirgs_bar(gsadfm = cl_4C_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
-              yTxtSize = 7, n = 15, plotWidth = 250, plotHeight = 220)
+              yTxtSize = 7, n = "all", plotWidth = 250, plotHeight = 220)
 dev.off()
 
 
