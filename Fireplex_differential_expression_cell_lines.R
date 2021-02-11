@@ -332,8 +332,8 @@ cl_4C <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 4, "C"), FUN=drop_
 #   Pathway analysis  (KEGG)     #
 ##################################
 
-setwd("C:/MBender/Arbeit/Github/PhD/Data/Pathway Analysis/")
-
+# setwd("C:/MBender/Arbeit/Github/PhD/Data/Pathway Analysis/")
+setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/Github/PhD/Data/Pathway Analysis/")
 
 ############################
 #       Controls           #
@@ -378,13 +378,43 @@ rbiomirgs_logistic(objTitle = "cl_1A_predicted_mirna_mrna_iwls_KEGG",mirna_DE = 
 bias_KEGG <- names(res_ctrl_KEGG$bias[res_ctrl_KEGG$bias > 0.1])
 cl_1A_KEGG_plot <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
 
+
 #plot results (volcano plot)
-rbiomirgs_volcano(gsadfm = cl_1A_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 3,
-  sigColour = "blue",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+png("volcano_cl_1A.png", units="in", width=5, height=4, res=600)
+rbiomirgs_volcano(gsadfm = cl_1A_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
+  sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+dev.off()
+
+# plot distribution of enriched gene sets
+png("volcano_bar_dist_cl_1A.png", units="in", width=6, height=3, res=600)
+rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = F,gs.name = F,
+  n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+dev.off()
+
 
 # plot top enriched gene sets
-rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = F,gs.name = F,
-  n = 15,plotWidth = 250, plotHeight = 220,)
+png("volcano_bar_top15cl_1A.png", units="in", width=4, height=4, res=600)
+rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 8, n = 15, plotWidth = 250, plotHeight = 220)
+dev.off()
+
+cl_1A_KEGG_plot %>% filter(adj.p.val < 0.05) %>% mutate(GS = fct_reorder(GS, desc(coef))) %>% ggplot(aes(GS, coef)) + 
+  geom_bar(stat= "identity",color = "black", fill = "gray66") + 
+  geom_errorbar(aes(ymin = coef - std.err, ymax = coef + std.err), width = 0.2, 
+                position = position_dodge(0.9)) +
+  ylab("model coefficient")+
+  xlab("")+
+  coord_flip() +
+  scale_x_discrete(expand = c(0.01,0)) +
+  scale_y_continuous(expand = c(0.01, 0)) +
+  theme(panel.background = element_rect(fill = "white", colour = "black"),
+        panel.border = element_rect(colour = "black",fill = NA, size = 0.5), 
+        plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom", legend.title = element_blank(),
+        axis.text.x = element_text(size = 10, angle = 0,hjust = 0.5),
+        axis.text.y = element_text(size = 10, hjust = 1))
+
+
 
 ############################
 #       Cluster 2          #
@@ -406,7 +436,7 @@ cl_2B_KEGG_plot <- cl_2B_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% b
 
 #plot results (volcano plot)
 rbiomirgs_volcano(gsadfm = cl_2B_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 3,
-                  sigColour = "blue",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+                  sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
 
 # plot top enriched gene sets
 rbiomirgs_bar(gsadfm = cl_2B_KEGG_plot,signif_only = T,gs.name = T,
@@ -486,7 +516,7 @@ cl_1A_Go_BP_plot <- cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in%
 
 # plot volcano plot
 rbiomirgs_volcano(gsadfm = cl_1A_Go_BP_plot , topgsLabel = TRUE, n = 15,gsLabelSize = 2,
-  sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+  sigColour = "blue",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
 
 # plot barplot
 rbiomirgs_bar(gsadfm = cl_1A_Go_BP_plot,signif_only = F,gs.name = F,# n = 15,
