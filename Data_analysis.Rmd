@@ -690,7 +690,7 @@ Interpretation???
 
 #### 1.3.5.2 GO:BP analysis
 
-Calculation of controls for KEGG analysis: 
+Calculation of controls for GO:BP analysis: 
 ```{r}
 # calculate GS enrichment for 50 random controls 
 n <- 50
