@@ -1,0 +1,7 @@
+"0",""
+"0","# show main cell line effect"
+"0","two_way_cell<- two_way_ANOVA %>%"
+"0","  filter(Effect == ""cell_line"" & p.adj < 0.05) %>%"
+"0","  pull(miRNA)"
+"0","two_way_ANOVA %>% "
+"0","  filter(miRNA %in% two_way_cell & Effect == ""cell_line"") "

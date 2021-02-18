@@ -1,4 +1,4 @@
-##Präambel
+##Pr?ambel
 library(tidyverse)
 library(ggpubr)
 library(rstatix)
@@ -16,7 +16,7 @@ library(RBiomirGS)
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
 
 #load data
-url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/200619_chronic_irr_normalized.csv" 
+url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/PhD_MB_FirePlex_chronic_irr_20190620.csv" 
 dat <-  load_Fireplex_data_PhD(filename = url(url_file), threshold = 2.5)
 
 
@@ -332,13 +332,12 @@ cl_4C <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 4, "C"), FUN=drop_
 #   Pathway analysis  (KEGG)     #
 ##################################
 
-# setwd("C:/MBender/Arbeit/Github/PhD/Data/Pathway Analysis/")
-setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/Github/PhD/Data/Pathway Analysis/")
+
 
 ############################
 #       Controls           #
 ############################
-dat_miRBase <- read.csv("mature_miRNA.csv", header = FALSE) %>%
+dat_miRBase <- read.csv("Data/Pathway Analysis/mature_miRNA.csv", header = FALSE) %>%
   mutate(miRNA = str_extract(V1, "(hsa-miR|hsa-let)-\\d{1,5}([:alpha:]+-\\dp|\\s|-\\dp|[:alpha:]+)")) %>% 
   na.omit()
 
@@ -620,8 +619,8 @@ rbiomirgs_bar(gsadfm = cl_4C_GO_BP_plot,signif_only = T,gs.name = T,xLabel = "mo
 dev.off()
 
 
-# positiver model coefficient: pathways in control group stärker inhibiert
-# negativer model coefficient: pathways in "treatment" group stärker inhibiert
+# positiver model coefficient: pathways in control group st?rker inhibiert
+# negativer model coefficient: pathways in "treatment" group st?rker inhibiert
 
 # Hypoxic naked mole-rat brains use microRNA to coordinate hypometabolic fuels and neuroprotective defenses
 # Paper for Guideline to report results from BiomirGS

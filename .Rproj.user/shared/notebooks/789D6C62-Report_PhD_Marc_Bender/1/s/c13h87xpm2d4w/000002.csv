@@ -1,0 +1,581 @@
+"0","# calculation of GSEA for miRNAs upregulated in cluster 1A "
+"0",""
+"0","# collect mRNA targets of the miRNAs upregulated in cluster 1A"
+"0","rbiomirgs_mrnascan_custom(objTitle = ""cl_1A_predicted"", mir = cl_1A$miRNA, sp = ""hsa"", "
+"0","  queryType = ""predicted"",parallelComputing = TRUE,clusterType = ""PSOCK"")"
+"2","...all done!
+"
+"0","# calculate GS by logistic regression"
+"0","rbiomirgs_logistic(objTitle = ""cl_1A_predicted_mirna_mrna_iwls_KEGG"",mirna_DE = cl_1A, "
+"0","  var_mirnaName = ""miRNA"",var_mirnaFC = ""FC"",var_mirnaP = ""pvalue"", mrnalist = cl_1A_predicted_mrna_entrez_list, "
+"0","  mrna_Weight = NULL, gs_file = ""Data/Pathway Analysis/c2.cp.kegg.v7.2.entrez.gmt"", optim_method = ""IWLS"", "
+"0","  p.adj = ""fdr"", parallelComputing = FALSE, clusterType = ""PSOCK"")"
+"2","186 gene sets sucessfully loaded from gmz file.
+"
+"1","Assessing gene set: KEGG_GLYCOLYSIS_GLUCONEOGENESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CITRATE_CYCLE_TCA_CYCLE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PENTOSE_PHOSPHATE_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PENTOSE_AND_GLUCURONATE_INTERCONVERSIONS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_FRUCTOSE_AND_MANNOSE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GALACTOSE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ASCORBATE_AND_ALDARATE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_FATTY_ACID_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_STEROID_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PRIMARY_BILE_ACID_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_STEROID_HORMONE_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_OXIDATIVE_PHOSPHORYLATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PURINE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PYRIMIDINE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ALANINE_ASPARTATE_AND_GLUTAMATE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCINE_SERINE_AND_THREONINE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CYSTEINE_AND_METHIONINE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_VALINE_LEUCINE_AND_ISOLEUCINE_DEGRADATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_VALINE_LEUCINE_AND_ISOLEUCINE_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_LYSINE_DEGRADATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ARGININE_AND_PROLINE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_HISTIDINE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_TYROSINE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PHENYLALANINE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_TRYPTOPHAN_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_BETA_ALANINE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_TAURINE_AND_HYPOTAURINE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_SELENOAMINO_ACID_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLUTATHIONE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_STARCH_AND_SUCROSE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_N_GLYCAN_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_OTHER_GLYCAN_DEGRADATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_O_GLYCAN_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_AMINO_SUGAR_AND_NUCLEOTIDE_SUGAR_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCOSAMINOGLYCAN_DEGRADATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCOSAMINOGLYCAN_BIOSYNTHESIS_CHONDROITIN_SULFATE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCOSAMINOGLYCAN_BIOSYNTHESIS_KERATAN_SULFATE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCOSAMINOGLYCAN_BIOSYNTHESIS_HEPARAN_SULFATE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCEROLIPID_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_INOSITOL_PHOSPHATE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCOSYLPHOSPHATIDYLINOSITOL_GPI_ANCHOR_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCEROPHOSPHOLIPID_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ETHER_LIPID_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ARACHIDONIC_ACID_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_LINOLEIC_ACID_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ALPHA_LINOLENIC_ACID_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_SPHINGOLIPID_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCOSPHINGOLIPID_BIOSYNTHESIS_LACTO_AND_NEOLACTO_SERIES..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCOSPHINGOLIPID_BIOSYNTHESIS_GLOBO_SERIES..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYCOSPHINGOLIPID_BIOSYNTHESIS_GANGLIO_SERIES..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PYRUVATE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLYOXYLATE_AND_DICARBOXYLATE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PROPANOATE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_BUTANOATE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ONE_CARBON_POOL_BY_FOLATE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_RIBOFLAVIN_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_NICOTINATE_AND_NICOTINAMIDE_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PANTOTHENATE_AND_COA_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_FOLATE_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_RETINOL_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PORPHYRIN_AND_CHLOROPHYLL_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_TERPENOID_BACKBONE_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_LIMONENE_AND_PINENE_DEGRADATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_NITROGEN_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_SULFUR_METABOLISM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_AMINOACYL_TRNA_BIOSYNTHESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_METABOLISM_OF_XENOBIOTICS_BY_CYTOCHROME_P450..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_DRUG_METABOLISM_CYTOCHROME_P450..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_DRUG_METABOLISM_OTHER_ENZYMES..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_BIOSYNTHESIS_OF_UNSATURATED_FATTY_ACIDS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ABC_TRANSPORTERS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_RIBOSOME..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_RNA_DEGRADATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_RNA_POLYMERASE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_BASAL_TRANSCRIPTION_FACTORS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_DNA_REPLICATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_SPLICEOSOME..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PROTEASOME..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PROTEIN_EXPORT..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PPAR_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_BASE_EXCISION_REPAIR..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_NUCLEOTIDE_EXCISION_REPAIR..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_MISMATCH_REPAIR..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_HOMOLOGOUS_RECOMBINATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_NON_HOMOLOGOUS_END_JOINING..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_MAPK_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ERBB_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CALCIUM_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CYTOKINE_CYTOKINE_RECEPTOR_INTERACTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CHEMOKINE_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PHOSPHATIDYLINOSITOL_SIGNALING_SYSTEM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_NEUROACTIVE_LIGAND_RECEPTOR_INTERACTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CELL_CYCLE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_OOCYTE_MEIOSIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_P53_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_UBIQUITIN_MEDIATED_PROTEOLYSIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_SNARE_INTERACTIONS_IN_VESICULAR_TRANSPORT..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_REGULATION_OF_AUTOPHAGY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_LYSOSOME..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ENDOCYTOSIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PEROXISOME..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_MTOR_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_APOPTOSIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CARDIAC_MUSCLE_CONTRACTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_VASCULAR_SMOOTH_MUSCLE_CONTRACTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_WNT_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_DORSO_VENTRAL_AXIS_FORMATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_NOTCH_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_HEDGEHOG_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_TGF_BETA_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_AXON_GUIDANCE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_VEGF_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_FOCAL_ADHESION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ECM_RECEPTOR_INTERACTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CELL_ADHESION_MOLECULES_CAMS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ADHERENS_JUNCTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_TIGHT_JUNCTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GAP_JUNCTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_COMPLEMENT_AND_COAGULATION_CASCADES..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ANTIGEN_PROCESSING_AND_PRESENTATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_RENIN_ANGIOTENSIN_SYSTEM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_TOLL_LIKE_RECEPTOR_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_NOD_LIKE_RECEPTOR_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_RIG_I_LIKE_RECEPTOR_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CYTOSOLIC_DNA_SENSING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_JAK_STAT_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_HEMATOPOIETIC_CELL_LINEAGE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_NATURAL_KILLER_CELL_MEDIATED_CYTOTOXICITY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_T_CELL_RECEPTOR_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_B_CELL_RECEPTOR_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_FC_EPSILON_RI_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_FC_GAMMA_R_MEDIATED_PHAGOCYTOSIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_LEUKOCYTE_TRANSENDOTHELIAL_MIGRATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_INTESTINAL_IMMUNE_NETWORK_FOR_IGA_PRODUCTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CIRCADIAN_RHYTHM_MAMMAL..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_LONG_TERM_POTENTIATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_NEUROTROPHIN_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_LONG_TERM_DEPRESSION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_OLFACTORY_TRANSDUCTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_TASTE_TRANSDUCTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_REGULATION_OF_ACTIN_CYTOSKELETON..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_INSULIN_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GNRH_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PROGESTERONE_MEDIATED_OOCYTE_MATURATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_MELANOGENESIS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ADIPOCYTOKINE_SIGNALING_PATHWAY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_TYPE_II_DIABETES_MELLITUS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_TYPE_I_DIABETES_MELLITUS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_MATURITY_ONSET_DIABETES_OF_THE_YOUNG..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ALDOSTERONE_REGULATED_SODIUM_REABSORPTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_VASOPRESSIN_REGULATED_WATER_REABSORPTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PROXIMAL_TUBULE_BICARBONATE_RECLAMATION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ALZHEIMERS_DISEASE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PARKINSONS_DISEASE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_AMYOTROPHIC_LATERAL_SCLEROSIS_ALS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_HUNTINGTONS_DISEASE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PRION_DISEASES..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_VIBRIO_CHOLERAE_INFECTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_EPITHELIAL_CELL_SIGNALING_IN_HELICOBACTER_PYLORI_INFECTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PATHOGENIC_ESCHERICHIA_COLI_INFECTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_LEISHMANIA_INFECTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PATHWAYS_IN_CANCER..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_COLORECTAL_CANCER..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_RENAL_CELL_CARCINOMA..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PANCREATIC_CANCER..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ENDOMETRIAL_CANCER..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GLIOMA..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PROSTATE_CANCER..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_THYROID_CANCER..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_BASAL_CELL_CARCINOMA..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_MELANOMA..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_BLADDER_CANCER..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_CHRONIC_MYELOID_LEUKEMIA..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ACUTE_MYELOID_LEUKEMIA..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_SMALL_CELL_LUNG_CANCER..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_NON_SMALL_CELL_LUNG_CANCER..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ASTHMA..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_AUTOIMMUNE_THYROID_DISEASE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_SYSTEMIC_LUPUS_ERYTHEMATOSUS..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ALLOGRAFT_REJECTION..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_GRAFT_VERSUS_HOST_DISEASE..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_PRIMARY_IMMUNODEFICIENCY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_HYPERTROPHIC_CARDIOMYOPATHY_HCM..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_ARRHYTHMOGENIC_RIGHT_VENTRICULAR_CARDIOMYOPATHY_ARVC..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_DILATED_CARDIOMYOPATHY..."
+"1","done!
+"
+"1","Assessing gene set: KEGG_VIRAL_MYOCARDITIS..."
+"1","done!
+"
+"0","# total number of significantly enriched pathways"
+"0","sum(cl_1A_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)"
+"1","[1]"
+"1"," 13"
+"1","
+"
+"0","# remove enriched pathways with a random enrichment of more than 10 %"
+"0","bias_KEGG <- names(res_ctrl_KEGG$bias[res_ctrl_KEGG$bias > 0.1])"
+"0","cl_1A_KEGG_plot <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)"

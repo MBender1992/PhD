@@ -18,7 +18,7 @@ source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_fu
 #############################
 
 #load data
-url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/200619_chronic_irr_normalized.csv" 
+url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/PhD_MB_FirePlex_chronic_irr_20190620.csv" 
 dat <-  load_Fireplex_data_PhD(filename = url(url_file), threshold = 2.5)
 
 # summarize data
