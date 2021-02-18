@@ -1,0 +1,5 @@
+"0","# one-sided t-test vs null"
+"0","ddCT %>% group_by(cell_line,miRNA) %>% "
+"0","  t_test(ddCT~ 1, mu = 0) %>% "
+"0","  filter(p <= 0.05) %>% "
+"0","  arrange(miRNA)"

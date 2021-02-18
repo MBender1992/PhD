@@ -1,9 +1,0 @@
-"0","```r
-# Kruskal Wallis test to test if there are any differences beteen cell lines
-dat_UV_sens %>% 
-  kruskal_test(abslog2FC~cell_line)
-
-# Wilcoxon-Mann-Whitney U test to compare groups pairwise
-dat_UV_sens %>% 
-  wilcox_test(abslog2FC~cell_line, p.adjust.method = \"fdr\")
-```"

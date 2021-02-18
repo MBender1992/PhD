@@ -1,0 +1,3 @@
+"0","# miRNAs with a significant interaction effect"
+"0","two_way_ANOVA %>% "
+"0","  filter(miRNA %in% two_way_interaction & Effect == ""cell_line:Irradiation"") "

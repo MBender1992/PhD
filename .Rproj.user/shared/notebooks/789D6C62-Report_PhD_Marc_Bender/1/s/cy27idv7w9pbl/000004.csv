@@ -1,4 +1,0 @@
-"0",""
-"0","# plot distribution of enriched gene sets"
-"0","rbiomirgs_bar(gsadfm = cl_4C_KEGG_plot,signif_only = F,gs.name = F,"
-"0","              n = ""all"",xLabel = ""gene set"", yLabel = ""model coefficient"", plotWidth = 250, plotHeight = 220)"

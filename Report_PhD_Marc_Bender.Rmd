@@ -31,6 +31,7 @@ This document serves as a summary of the data analysis conducted during my PhD t
 library(tidyverse)
 library(ggpubr)
 library(data.table)
+library(gtools)
 # statistics
 library(rstatix)
 library(EnvStats) 
@@ -42,9 +43,10 @@ library(FactoMineR)
 library(factoextra)
 # pathway analysis
 library(RBiomirGS)
-#
+# parallel computing and access of internet data
 library(devtools)
 library(doParallel)
+
 # source custom R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
 ```
@@ -53,7 +55,7 @@ source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_fu
 # 1. Screening for UV induced miRNAs
 ## 1.1 Experimental setup and data ingestion
 In a first step we screened 51 manually curated miRNAs associated with cSCC or other epithelial tumors for UV induced changes. To this end, five different cancer cell lines (SCL-II, Met-1, Met-4, SCC-12, SCC-13; Fig. 1) were grown under standard cell culture conditions with DMEM (Met-1,Met-4, SCL-II) or FAD (SCC-12, SCC-13) as cell culture media. Cells were grown to 80 % confluency and exposed to 103 kJ/m² (physical doses: 246.01 J/m² UVB (280-315 nm); 12.50 kJ/m² UVA (315-400 nm); 28.03 kJ/m² VIS (400-750 nm); 61.74 kJ/m² IR-A (750-1200 nm)) sunlight-equivalent radiation (SER) with a custom-built irradiation device 
-(KAUVIR: https://www.fona.de/de/massnahmen/foerdermassnahmen/strahlenforschung.php). The cells were treated eight times with this dose over time course of 4 weeks to simulate a chronic UV exposure. For the analysis 4 biological replicates were used.  
+(KAUVIR: https://www.fona.de/de/massnahmen/foerdermassnahmen/strahlenforschung.php). The cells were treated eight times with this dose over a time course of 4 weeks (irradiation twice a week) to simulate a chronic UV exposure. For the analysis 4 biological replicates were used.  
 
 
 ![**Fig. 1: Cell line characteristics of the tumor cell lines used in this study.**  The cell lines exhibit different levels of differentiation with SCC-13 being highly differentiated and SCL-II being undifferentiated. p53 mutations are present in all cell lines except Met-1 and Met-4. Met-1 and Met-4 are cell lines from the same patient in different stages of the tumor.)](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/cell_line_characterization_cropped.png)
@@ -561,7 +563,7 @@ res_ctrl_KEGG <- pathway_ctrl_summary(ctrl_list_KEGG, n=n)
 
 Comparison of miRNAs upregulcl_1A_predicted_mirna_mrna_iwls_KEGGated in SCC-12/SCC-13 vs SCL-II, Met-1 and Met-4.
 
-```{r}
+```{r, eval = FALSE}
 # calculation of GSEA for miRNAs upregulated in cluster 1A 
 
 # collect mRNA targets of the miRNAs upregulated in cluster 1A
@@ -585,7 +587,7 @@ cl_1A_KEGG_plot <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% b
 
 In total 13 (12 after bias correction) KEGG pathways were significantly enriched in the gene set targeted by the 10 miRNAs in cluster 1A. One pathway (KEGG_Glioma) was excluded from the downstream analysis as it was enriched in more than 10 % of control simulations (also for the analysis in cluster 2B and cluster 4C).  
 
-```{r}
+```{r, eval = FALSE}
 #plot results (volcano plot)
 rbiomirgs_volcano(gsadfm = cl_1A_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
   sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
@@ -606,7 +608,7 @@ Interpretation???
 ##### Cluster 2B 
 Comparison of miRNAs upregulated in  SCL-II vs. SCC-12, SCC-13 Met-1 and Met-4.
 
-```{r}
+```{r, eval = FALSE}
 # collect mRNA targets of the miRNAs upregulated in cluster 2B
 rbiomirgs_mrnascan_custom(objTitle = "cl_2B_predicted", mir = cl_2B$miRNA, sp = "hsa", 
                    queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
@@ -626,7 +628,7 @@ cl_2B_KEGG_plot <- cl_2B_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% b
 
 In total 34 (33 after bias correction) KEGG pathways were significantly enriched in cluster 2B. 
 
-```{r}
+```{r, eval = FALSE}
 #plot results (volcano plot)
 rbiomirgs_volcano(gsadfm = cl_2B_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
                   sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
@@ -649,7 +651,7 @@ Interpretation???
 #### Cluster 4C
 Comparison of miRNAs upregulated in  Met-1 and Met-4 vs. SCC-12, SCC-13 and SCL-II.
 
-```{r}
+```{r, eval = FALSE}
 # collect mRNA targets of the miRNAs upregulated in cluster 4C
 rbiomirgs_mrnascan_custom(objTitle = "cl_4C_predicted", mir = cl_4C$miRNA, sp = "hsa", 
                    queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
@@ -669,7 +671,7 @@ cl_4C_KEGG_plot <- cl_4C_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% b
 
 In total 32 (31 after bias correction) KEGG pathways were significantly enriched in cluster 4C. 
 
-```{r}
+```{r, eval = FALSE}
 #plot results (volcano plot)
 rbiomirgs_volcano(gsadfm = cl_4C_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
                   sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
@@ -711,7 +713,7 @@ res_ctrl_GO_BP <-pathway_ctrl_summary(ctrl_list_GO_BP, n=n)
 
 #### Cluster 1A 
 
-```{r}
+```{r, eval = FALSE}
 # calculate GS by logistic regression
 rbiomirgs_logistic(objTitle = "cl_1A_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_1A, 
   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_1A_predicted_mrna_entrez_list, 
@@ -728,7 +730,7 @@ cl_1A_Go_BP_plot <- cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in%
 
 In total 501 (442 after bias correction) GO terms (biological process) were significantly enriched. 59 Go terms were randomly enriched in more than 10 % of control simulations and omitted from the analysis (also for cluster 2B and 4C).
 
-```{r}
+```{r, eval = FALSE}
 #plot results (volcano plot)
 rbiomirgs_volcano(gsadfm = cl_1A_GO_BP_plot,topgsLabel = TRUE,n = 5,gsLabelSize = 1.8,
                   sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
@@ -747,7 +749,7 @@ rbiomirgs_bar(gsadfm = cl_1A_GO_BP_plot,signif_only = 15,gs.name = T,xLabel = "m
 \
 
 #### Cluster 2B
-```{r}
+```{r, eval = FALSE}
 # calculate GS by logistic regression
 rbiomirgs_logistic(objTitle = "cl_2B_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_2B, 
                    var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_2B_predicted_mrna_entrez_list, 
@@ -764,7 +766,7 @@ cl_2B_Go_BP_plot <- cl_2B_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in%
 
 In total 525 (466 after bias correction) GO terms were enriched in cluster 2B. 
 
-```{r}
+```{r, eval = FALSE}
 #plot results (volcano plot)
 rbiomirgs_volcano(gsadfm = cl_2B_GO_BP_plot,topgsLabel = TRUE,n = 10,gsLabelSize = 1.8,
                   sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
@@ -785,7 +787,7 @@ rbiomirgs_bar(gsadfm = cl_2B_GO_BP_plot,signif_only = T,gs.name = T,xLabel = "mo
 
 #### Cluster 4C
 
-```{r}
+```{r, eval = FALSE}
 # calculate GS by logistic regression
 rbiomirgs_logistic(objTitle = "cl_4C_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_4C, 
                    var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_4C_predicted_mrna_entrez_list, 
@@ -801,7 +803,7 @@ cl_4C_Go_BP_plot <- cl_4C_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in%
 
 In total 766 (707 after bias correction) GO terms were enriched in cluster 4C. 
 
-```{r}
+```{r, eval = FALSE}
 #plot results (volcano plot)
 rbiomirgs_volcano(gsadfm = cl_4C_GO_BP_plot,topgsLabel = TRUE,n = 10,gsLabelSize = 1.8,
                   sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
@@ -875,7 +877,7 @@ diff_expr_interaction <- pwc_interaction %>%
 diff_expr_interaction
 ```
 
-```{r}
+```{r, eval = FALSE}
 # function expands facet limits individually to plot each facet with an individual scale
 facet_limits <-function(data, y, group){
   
@@ -1018,10 +1020,10 @@ diff_expr_irradiation
 ```
 
 
-```{r}
+```{r, eval = FALSE}
 dat_plot %>% 
   # only show differentially expressed miRNAs with a significant main effect "irradiation" term in two-way ANOVA but without significant interaction
-  filter(miRNA %in% diff_expr_Irradiation$miRNA) %>%
+  filter(miRNA %in% diff_expr_irradiation$miRNA) %>%
   ggplot(
     aes(
       x=cell_line,
@@ -1084,7 +1086,7 @@ with Ct~ref~ representing the Ct value of the reference gene, Ct~goi~ representi
 
 ```{r, message = FALSE}
 # save url
-url_file_val <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/qPCR_Validation.csv" 
+url_file_val <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/PhD_MB_qPCR_validation_Fireplex_20201015.csv" 
 
 # load data
 dat_qPCR <- read_csv(url(url_file_val)) %>% 
@@ -1154,7 +1156,7 @@ ddCT %>% group_by(cell_line,miRNA) %>%
   arrange(miRNA)
 ```
 
-```{r}
+```{r, eval = FALSE}
 # extract fold changes for each miRNA and cell line from Fireplex analysis
 logFC_fireplex <- folds %>%
   filter(miRNA %in% c(ddCT$miRNA, "mir-30d-5p")) %>%
@@ -1232,7 +1234,7 @@ dat_UV_sens %>%
   wilcox_test(abslog2FC~cell_line, p.adjust.method = "fdr")
 ```
 
-```{r}
+```{r, eval = FALSE}
 # define position for jitter and text labels
 pos <- position_jitter(width = 0.05, seed = 2)
 

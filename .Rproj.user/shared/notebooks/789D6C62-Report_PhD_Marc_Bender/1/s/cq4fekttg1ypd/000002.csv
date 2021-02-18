@@ -1,3 +1,0 @@
-"0","#plot results (volcano plot)"
-"0","rbiomirgs_volcano(gsadfm = cl_2B_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,"
-"0","                  sigColour = ""red"",plotWidth = 250,plotHeight = 220,xLabel = ""model coefficient"")"
