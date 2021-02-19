@@ -1,8 +1,7 @@
-##Präambel
+##Pr?ambel
 library(tidyverse)
 library(ggpubr)
 library(rstatix)
- # library(EnvStats)
 library(ComplexHeatmap)
 library(factoextra)
 library(FactoMineR)
@@ -11,12 +10,11 @@ library(devtools)
 library(RBiomirGS)
 
 
-
 # source R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
 
 #load data
-url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/200619_chronic_irr_normalized.csv" 
+url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/PhD_MB_FirePlex_chronic_irr_20190620.csv" 
 dat <-  load_Fireplex_data_PhD(filename = url(url_file), threshold = 2.5)
 
 
@@ -332,13 +330,12 @@ cl_4C <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 4, "C"), FUN=drop_
 #   Pathway analysis  (KEGG)     #
 ##################################
 
-# setwd("C:/MBender/Arbeit/Github/PhD/Data/Pathway Analysis/")
-setwd("Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/Github/PhD/Data/Pathway Analysis/")
+
 
 ############################
 #       Controls           #
 ############################
-dat_miRBase <- read.csv("mature_miRNA.csv", header = FALSE) %>%
+dat_miRBase <- read.csv("Data/Pathway Analysis/mature_miRNA.csv", header = FALSE) %>%
   mutate(miRNA = str_extract(V1, "(hsa-miR|hsa-let)-\\d{1,5}([:alpha:]+-\\dp|\\s|-\\dp|[:alpha:]+)")) %>% 
   na.omit()
 
@@ -349,11 +346,11 @@ ctrl_stats <- rbind(cl_1A, cl_2B, cl_4C) %>%
 # calculate GS enrichment for 50 random controls 
 n <- 50
 # ctrl_list_KEGG <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10,
-#                          gs_file = "c2.cp.kegg.v7.2.entrez.gmt")
+#                          gs_file = "Data/Pathway Analysis/c2.cp.kegg.v7.2.entrez.gmt")
 
 # to facilitate downstream analysis the ctrl_list is saved 
-# saveRDS(ctrl_list, file = "ctrl_list.rds")
-ctrl_list_KEGG <- readRDS(file = "ctrl_list_KEGG.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_KEGG.rds
+# saveRDS(ctrl_list, file = "Data/Pathway Analysis/ctrl_list.rds")
+ctrl_list_KEGG <- readRDS(file = "Data/Pathway Analysis/ctrl_list_KEGG.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_KEGG.rds
 
 # calculate bias and mean targeted genes
 res_ctrl_KEGG <- pathway_ctrl_summary(ctrl_list_KEGG, n=n)
@@ -371,7 +368,7 @@ rbiomirgs_mrnascan(objTitle = "cl_1A_predicted", mir = cl_1A$miRNA, sp = "hsa",
 # calculate GS by logistic regression
 rbiomirgs_logistic(objTitle = "cl_1A_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_1A, 
   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_1A_predicted_mrna_entrez_list, 
-  mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+  mrna_Weight = NULL, gs_file = "Data/Pathway Analysis/c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
   p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
 
 # total number of significantly enriched pathways
@@ -414,7 +411,7 @@ rbiomirgs_mrnascan(objTitle = "cl_2B_predicted", mir = cl_2B$miRNA, sp = "hsa",
 # calculate GS by logistic regression
 rbiomirgs_logistic(objTitle = "cl_2B_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_2B, 
                    var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_2B_predicted_mrna_entrez_list, 
-                   mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+                   mrna_Weight = NULL, gs_file = "Data/Pathway Analysis/c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
                    p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
 
 # total number of significantly enriched pathways
@@ -455,7 +452,7 @@ rbiomirgs_mrnascan(objTitle = "cl_4C_predicted", mir = cl_4C$miRNA, sp = "hsa",
 # calculate GS by logistic regression
 rbiomirgs_logistic(objTitle = "cl_4C_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_4C, 
                    var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_4C_predicted_mrna_entrez_list, 
-                   mrna_Weight = NULL, gs_file = "c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+                   mrna_Weight = NULL, gs_file = "Data/Pathway Analysis/c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
                    p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
 
 # total number of significantly enriched pathways
@@ -499,11 +496,11 @@ dev.off()
 # calculate GS enrichment for 50 random controls 
 n <- 50
 # ctrl_list_GO_BP <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10, 
-#                          gs_file = "c5.go.bp.v7.2.entrez.xls")
+#                          gs_file = "Data/Pathway Analysis/c5.go.bp.v7.2.entrez.xls")
 
 # to facilitate downstream analysis the ctrl_list is saved 
-# saveRDS(ctrl_list_GO_BP, file = "ctrl_list_GO_BP.rds")
-ctrl_list_GO_BP<- readRDS(file = "ctrl_list_GO_BP.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_GO_BP.rds
+# saveRDS(ctrl_list_GO_BP, file = "Data/Pathway Analysis/ctrl_list_GO_BP.rds")
+ctrl_list_GO_BP<- readRDS(file = "Data/Pathway Analysis/ctrl_list_GO_BP.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_GO_BP.rds
 
 # calculate bias and mean targeted genes
 res_ctrl_GO_BP <-pathway_ctrl_summary(ctrl_list_GO_BP, n=n)
@@ -517,7 +514,7 @@ res_ctrl_GO_BP <-pathway_ctrl_summary(ctrl_list_GO_BP, n=n)
 # calculate GS by logistic regression
 rbiomirgs_logistic(objTitle = "cl_1A_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_1A, 
   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_1A_predicted_mrna_entrez_list, 
-  mrna_Weight = NULL,gs_file = "c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
+  mrna_Weight = NULL,gs_file = "Data/Pathway Analysis/c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
   p.adj = "fdr",parallelComputing = FALSE,clusterType = "PSOCK")
 
 # number of enriched GO terms
@@ -554,7 +551,7 @@ dev.off()
 # calculate GS by logistic regression
 rbiomirgs_logistic(objTitle = "cl_2B_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_2B, 
                    var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_2B_predicted_mrna_entrez_list, 
-                   mrna_Weight = NULL,gs_file = "c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
+                   mrna_Weight = NULL,gs_file = "Data/Pathway Analysis/c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
                    p.adj = "fdr",parallelComputing = FALSE,clusterType = "PSOCK")
 
 # number of enriched GO terms
@@ -592,7 +589,7 @@ dev.off()
 # calculate GS by logistic regression
 rbiomirgs_logistic(objTitle = "cl_4C_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_4C, 
                    var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_4C_predicted_mrna_entrez_list, 
-                   mrna_Weight = NULL,gs_file = "c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
+                   mrna_Weight = NULL,gs_file = "Data/Pathway Analysis/c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
                    p.adj = "fdr",parallelComputing = FALSE,clusterType = "PSOCK")
 
 # number of enriched GO terms
@@ -620,8 +617,8 @@ rbiomirgs_bar(gsadfm = cl_4C_GO_BP_plot,signif_only = T,gs.name = T,xLabel = "mo
 dev.off()
 
 
-# positiver model coefficient: pathways in control group stärker inhibiert
-# negativer model coefficient: pathways in "treatment" group stärker inhibiert
+# positiver model coefficient: pathways in control group st?rker inhibiert
+# negativer model coefficient: pathways in "treatment" group st?rker inhibiert
 
 # Hypoxic naked mole-rat brains use microRNA to coordinate hypometabolic fuels and neuroprotective defenses
 # Paper for Guideline to report results from BiomirGS

@@ -1,0 +1,6 @@
+"0","# show interaction"
+"0","two_way_interaction <- two_way_ANOVA %>%"
+"0","  filter(Effect == ""cell_line:Irradiation"" & p.adj < 0.05) %>%"
+"0","  pull(miRNA)"
+"0","two_way_ANOVA %>% "
+"0","  filter(miRNA %in% two_way_interaction & Effect == ""cell_line:Irradiation"") "

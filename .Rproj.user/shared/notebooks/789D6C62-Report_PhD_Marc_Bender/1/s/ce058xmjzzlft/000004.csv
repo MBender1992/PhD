@@ -1,0 +1,4 @@
+"0",""
+"0","# Wilcoxon-Mann-Whitney U test to compare groups pairwise"
+"0","dat_UV_sens %>% "
+"0","  wilcox_test(abslog2FC~cell_line, p.adjust.method = ""fdr"")"

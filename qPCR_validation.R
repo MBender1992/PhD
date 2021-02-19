@@ -11,7 +11,7 @@ library(devtools)
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
 
 # access data
-url_file_val <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/qPCR_Validation.csv" 
+url_file_val <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/PhD_MB_qPCR_validation_Fireplex_20201015.csv" 
 
 # load data
 dat_qPCR <- read_csv(url(url_file_val)) %>% 
@@ -89,7 +89,7 @@ ddCT %>% group_by(cell_line,miRNA) %>%
 # ddCT = dCT[ctrl] - dCT[trt]
 
 # anders als 2008 beschrieben (ist intuitiver da negative dCT Werte mit weniger Expression und positive dCT mit einer 
-# höheren Expression korrelieren)
+# h?heren Expression korrelieren)
 
 
 
