@@ -1,0 +1,24 @@
+"0","```r
+# data wrangling and basic visualization
+library(tidyverse)
+library(ggpubr)
+library(data.table)
+library(gtools)
+# statistics
+library(rstatix)
+library(EnvStats) 
+# Heatmap
+library(ComplexHeatmap)
+library(circlize)
+# PCA
+library(FactoMineR)
+library(factoextra)
+# pathway analysis
+library(RBiomirGS)
+# parallel computing and access of internet data
+library(devtools)
+library(doParallel)
+
+# source custom R functions
+source_url(\"https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R\")  
+```"

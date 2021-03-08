@@ -1,0 +1,16 @@
+"0","```r
+# transform data for the format required by \"PCA\"
+dat_PCA <- dat %>% 
+  select(-c(expression)) %>%
+  spread(miRNA, log_exp) %>%
+  mutate(cell_line = str_replace_all(cell_line, \"_\",\"-\"))
+
+# scale data and perform PCA
+res.pca <- PCA(dat_PCA[, -c(1:3)],  scale.unit = T, ncp = 5, graph = F)
+
+# extract results and chose which PCs to use
+eig.val <- get_eigenvalue(res.pca)
+
+head(eig.val)
+
+```"

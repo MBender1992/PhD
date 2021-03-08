@@ -1,0 +1,9 @@
+"0","```r
+# 2-way ANOVA with miRNA as moderator variable
+two_way_ANOVA <- dat %>%
+  group_by(miRNA) %>%
+  # perform ANOVA with hccm correction (white.adjust = TRUE)
+  anova_test(log_exp ~ cell_line*Irradiation, white.adjust = T) %>%
+  adjust_pvalue(method = \"fdr\") 
+two_way_ANOVA
+```"

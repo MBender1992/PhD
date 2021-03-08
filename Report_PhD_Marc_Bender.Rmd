@@ -944,6 +944,8 @@ dat_plot %>%
 
 ![**Fig. 11: miRNA expression of the differentially expressed miRNAs with an interaction effect of cell line and irradiation in the two-way ANOVA (section 1.3.2).** KAUVIR: cells irradiated with the irradiation device for the KAUVIR project. Results of interaction term in two-way ANOVA after fdr-adjustment are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;&#42;: p < 0.001, &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_interaction.png)
 
+NOTE: ** Apply bonferroni-correction for the 5 tests within each miRNA? **
+
 All 4 miRNAs were upregulated in at least one cell line (miR-126-3p in SCC-13, miR-146a-5p in SCL-II, miR-30a-3p in SCC-12 and SCL-II and miR-7-5p in SCL-II). Although not significantly changed the same trend of upregulation can be observed for other cell lines as well, with an exception of miR-126-3p in Met-1 and SCC-12, miR-146a-5p in SCC-12 and SCC-13 and miR-7-5p in Met-1 and SCC-13 (which even shows a downregulation after irradiation, however not significantly). 
 \
 \
@@ -1231,7 +1233,7 @@ dat_UV_sens %>%
 
 # Wilcoxon-Mann-Whitney U test to compare groups pairwise
 dat_UV_sens %>% 
-  wilcox_test(abslog2FC~cell_line, p.adjust.method = "fdr")
+  dunn_test(abslog2FC~cell_line, p.adjust.method = "fdr")
 ```
 
 ```{r, eval = FALSE}
@@ -1250,7 +1252,7 @@ dat_labelled <- left_join(dat_UV_sens,labels) %>%
 
 # plot
 # add errorbars
-dat_labelled %>% 
+plot_UV_sens <- dat_labelled %>% 
   ggplot(aes(cell_line,abslog2FC)) +
   stat_boxplot(
     geom ='errorbar',
@@ -1295,7 +1297,5 @@ dat_labelled %>%
 
 
 SCC-12 and SCC-13 show significantly higher absolute log2FC indicating a higher UV-responsiveness of these cell lines. Although not significantly changed, SCL-II also shows higher UV-sensitivity than Met-1 and Met-4. There are minor differences between cell lines in respect to which miRNAs are altered the most after UV irradiation, however miR-503-5p, miR-146a-5p and miR-30a-3p exhibit the highest differences in almost all cell lines. The lower UV-response in Met-1 and Met-4 might be due to a functional p53 protein and better DNA damage response.
-
-
 
 # 2 Knockdown of miR-205-5p

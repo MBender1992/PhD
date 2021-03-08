@@ -1,0 +1,14 @@
+"0","```r
+# summarize data with geometric mean and geometric sd for each miRNA in each cell line for irradiated cells and controls
+dat_summary <- dat %>% 
+  mutate(expression = expression + 1) %>%
+  group_by(cell_line, Irradiation,miRNA) %>%
+  summarize(geomean = geoMean(expression, na.rm =T), geosd = geoSD(expression))
+# calculate fold changes by dividing the geomean expression value of irradiated cells by geomean expression value of 
+# control cells for each each miRNA in each cell line
+folds <-  dat_summary %>% 
+  group_by(cell_line,  miRNA) %>% 
+  summarize(FC = geomean[Irradiation == \"KAUVIR\"]/geomean[Irradiation == \"control\"]) %>% 
+  mutate(log2FC = log2(FC)) %>%
+  setNames(c(\"cell_line\", \"miRNA\",\"FC\", \"log2FC\"))
+```"

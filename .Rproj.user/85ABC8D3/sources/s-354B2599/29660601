@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1615210820783.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "29660601",
+    "lastKnownWriteTime" : 1615211000,
+    "last_content_update" : 1615211000328,
+    "path" : "Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/Github/PhD/UV sensitivity.R",
+    "project_path" : "UV sensitivity.R",
+    "properties" : {
+        "cursorPosition" : "86,1",
+        "scrollLine" : "64"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

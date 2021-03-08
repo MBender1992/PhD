@@ -1,0 +1,19 @@
+"0","```r
+# show interaction
+two_way_interaction <- two_way_ANOVA %>%
+  filter(Effect == \"cell_line:Irradiation\" & p.adj < 0.05) %>%
+  pull(miRNA)
+two_way_ANOVA %>% 
+  filter(miRNA %in% two_way_interaction & Effect == \"cell_line:Irradiation\") 
+
+# show main cell line effect
+two_way_cell<- two_way_ANOVA %>%
+  filter(Effect == \"cell_line\" & p.adj < 0.05) %>%
+  pull(miRNA)
+two_way_ANOVA %>% 
+  filter(miRNA %in% two_way_cell & Effect == \"cell_line\") 
+
+# no effect
+two_way_ANOVA %>% 
+  filter(!miRNA %in% two_way_cell & Effect == \"cell_line\")
+```"

@@ -1,0 +1,22 @@
+"0","```r
+# load data with mature miRNAs from miRBase
+dat_miRBase <- read.csv(\"Data/Pathway Analysis/mature_miRNA.csv\", header = FALSE) %>%
+  mutate(miRNA = str_extract(V1, \"(hsa-miR|hsa-let)-\\d{1,5}([:alpha:]+-\\dp|\\s|-\\dp|[:alpha:]+)\")) %>% 
+  na.omit()
+
+# data frame containing FC and pvalue of the original data used for random sampling in controls
+ctrl_stats <- rbind(cl_1A, cl_2B, cl_4C) %>% 
+  select(-miRNA) 
+
+# calculate GS enrichment for 50 random controls (containing 10 miRNAs each)
+n <- 50
+# ctrl_list_KEGG <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10,
+#                          gs_file = \"c2.cp.kegg.v7.2.entrez.gmt\")
+
+# to facilitate downstream analysis the ctrl_list is saved 
+# saveRDS(ctrl_list, file = \"ctrl_list.rds\")
+ctrl_list_KEGG <- readRDS(file = \"Data/Pathway Analysis/ctrl_list_KEGG.rds\") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_KEGG.rds
+
+# calculate bias and mean targeted genes
+res_ctrl_KEGG <- pathway_ctrl_summary(ctrl_list_KEGG, n=n)
+```"

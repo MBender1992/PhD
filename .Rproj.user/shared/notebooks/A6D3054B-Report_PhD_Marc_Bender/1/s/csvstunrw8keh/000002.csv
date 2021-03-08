@@ -1,0 +1,11 @@
+"0","```r
+# create list for each miRCluster
+ls_miRCluster <- split(dat_clusters, f = dat_clusters$miRCluster)         
+
+# compare Cluster 1A to 1B and 1C, drop attributes (important for the pathway analysis as a list threw an error) and generate a data.frame
+cl_1A <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 1, \"A\"), FUN=drop_attr))
+# compare Cluster2B to 2A and 2C, drop attributes and generate a data.frame
+cl_2B <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 2, \"B\"), FUN=drop_attr))
+# compare Cluster 4C to 4A and 4B, drop attributes and generate a data.frame
+cl_4C <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 4, \"C\"), FUN=drop_attr))
+```"

@@ -1,0 +1,20 @@
+"0","```r
+fviz_pca_ind(
+  res.pca,
+  # Fill individuals by groups
+  geom.ind = \"point\",
+  fill.ind = dat_PCA$cell_line,
+  col.ind = \"black\",
+  pointshape = 21, 
+  pointsize = dat_PCA$Irradiation,
+  palette = \"jco\",
+  addEllipses = T,
+  axes = c(1, 2),
+  # Variables
+  alpha.var =0.5,
+  mean.point = F,
+  ellipse.level=0.8,
+  legend.title = list(fill = \"Cell line\")
+) + 
+  scale_size_manual(values = c(2,4))
+```"

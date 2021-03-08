@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1615210662136.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "A30504A",
+    "lastKnownWriteTime" : 1615216623,
+    "last_content_update" : 1615216624092,
+    "path" : "Z:/Aktuell/Eigene Dateien/Eigene Dateien_Marc/R/Github/PhD/Report_PhD_Marc_Bender.Rmd",
+    "project_path" : "Report_PhD_Marc_Bender.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "cursorPosition" : "299,21",
+        "scrollLine" : "286"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
