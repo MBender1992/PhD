@@ -83,7 +83,7 @@ dat_UV_sens %>%
 
 # Wilcoxon-Mann-Whitney U test to compare groups pairwise
 dat_UV_sens %>% 
-  wilcox_test(abslog2FC~cell_line, p.adjust.method = "fdr")
+  dunn_test(abslog2FC~cell_line, p.adjust.method = "fdr")
  
 
 
