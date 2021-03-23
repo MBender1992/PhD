@@ -307,10 +307,10 @@ dev.off()
 ############################
 
 # extract clusters out of Heatmap object
-Ht_clusters <- extract_clusters(dat_scaled, Ht, sampleName = "ID", sampleClust = "cellCluster", geneName = "miRNA", geneClust = "miRCluster")
+Ht_clusters <- extract_clusters(dat_scaled, Ht, sampleName = "ID", sampleClust = "sampleCluster", geneName = "miRNA", geneClust = "miRCluster")
 
 # construct new data frame containing cluster information
-dat_clusters <- left_join(filter(dat, Irradiation == "control"), Ht_clusters$cellCluster) %>%
+dat_clusters <- left_join(filter(dat, Irradiation == "control"), Ht_clusters$sampleCluster) %>%
   left_join(Ht_clusters$miRCluster) %>% select(-c(Irradiation, cell_line)) %>%
   mutate(miRNA = str_replace_all(miRNA,"let", "hsa-let"),
          miRNA = str_replace_all(miRNA,"mir", "hsa-miR"))
@@ -324,6 +324,8 @@ cl_1A <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 1, "A"), FUN=drop_
 cl_2B <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 2, "B"), FUN=drop_attr))
 # compare Cluster 4C to 4A and 4B, drop attributes and generate a data.frame
 cl_4C <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 4, "C"), FUN=drop_attr))
+
+
 
 
 ##################################
