@@ -1,9 +1,0 @@
-"0","#plot results (volcano plot)
-rbiomirgs_volcano(gsadfm = cl_1A_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
-  sigColour = \"red\",plotWidth = 250,plotHeight = 220,xLabel = \"model coefficient\")
-# plot distribution of enriched gene sets
-rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = F,gs.name = F,
-  n = \"all\",xLabel = \"gene set\", yLabel = \"model coefficient\", plotWidth = 250, plotHeight = 220)
-# plot top enriched gene sets
-rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = 15,gs.name = T,xLabel = \"model coefficient\",
-              yTxtSize = 7, n = 15, plotWidth = 250, plotHeight = 220)"

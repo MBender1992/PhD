@@ -1,4 +1,0 @@
-"0","```r
-normalizers <- c(\"miR-23a-3p\",\"miR-23b-3p\", \"miR-24-3p\", \"miR-26a-3p\", \"miR-30b-3p\", \"miR-22-3p\", \"miR-16-5p\", \"miR-221-3p\", \"miR-15a-3p\", \"miR-29a-3p\", \"let-7f-5p\", \"miR-29c-3p\")
-normalizers
-```"

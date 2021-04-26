@@ -1,6 +1,0 @@
-"0","```r
-# convert log2-fold changes to absolute log2-fold changes
-dat_UV_sens <- folds %>% 
-  ungroup()%>% 
-  mutate(abslog2FC= abs(log2FC))
-```"

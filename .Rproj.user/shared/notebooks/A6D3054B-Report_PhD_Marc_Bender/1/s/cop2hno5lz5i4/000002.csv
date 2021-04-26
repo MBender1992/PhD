@@ -1,7 +1,0 @@
-"0","```r
-# check for outliers 
-outl <- dat %>% 
-  group_by(cell_line,Irradiation, miRNA) %>%
-  identify_outliers(log_exp) 
-any(outl$is.extreme)
-```"
