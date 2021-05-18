@@ -26,7 +26,7 @@ This document serves as a summary of the data analysis conducted during my PhD t
 
 ### Loading of required packages
 
-```{r, message = FALSE}
+```{r, message = FALSE, warning = FALSE}
 # data wrangling and basic visualization
 library(tidyverse)
 library(ggpubr)

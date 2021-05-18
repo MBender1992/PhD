@@ -47,21 +47,23 @@ colorbar <- HeatmapAnnotation(
 )
 
 # define color scheme for Heatmap
-col_fun = colorRamp2(c(-1.8, 0, 1.8), c(c("#6D9EC1", "white", "#E46726")))
+# col_fun = colorRamp2(c(-1.8, 0, 1.8), c(c("#6D9EC1", "white", "#E46726")))
+col_fun = colorRamp2(c(-1.8, 0, 1.8), c(c("#54278f", "black", "#FFFF00")))
+
 
 # draw Heatmap
 Ht <- Heatmap(dat_scaled,col= col_fun,
   top_annotation = colorbar,
   row_split = 4,
-  column_title = c("A", "B", "C"),
+  column_title = c("A", "B", "C","D","E"),
   border = T,
-  column_km = 3,
+  column_km = 5,
   column_km_repeats = 100,
   clustering_method_row = "average",
   clustering_method_columns = "average",
   clustering_distance_row = "pearson",
   clustering_distance_column = "euclidean",
-  rect_gp = gpar(col = "white",lty = 1, lwd = 1),
+  rect_gp = gpar(col = "black",lty = 1, lwd = 1),
   row_names_gp = gpar(fontsize = 10),
   show_column_names = FALSE,
   column_names_gp = gpar(fontsize = 10),
@@ -74,9 +76,9 @@ Ht <- Heatmap(dat_scaled,col= col_fun,
     legend_width = unit(4, "cm")
   ))
 
-# png("Results/cell_line_Heatmap.png", units="in", width=4, height=7, res=600)
+png("Results/cell_line_Heatmap.png", units="in", width=4, height=7, res=600)
 draw(Ht, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
-# dev.off()
+dev.off()
 
 
 ############################
