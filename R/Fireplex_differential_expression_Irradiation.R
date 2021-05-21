@@ -92,7 +92,8 @@ dat%>%
 two_way_ANOVA <- dat%>% 
   group_by(miRNA) %>%
   anova_test(log_exp ~ cell_line*Irradiation, white.adjust = T) %>%
-  adjust_pvalue(method = "fdr")
+  adjust_pvalue(method = "fdr") %>% 
+  as_tibble()
 
 # significant interaction effect
 two_way_interaction <- two_way_ANOVA %>%

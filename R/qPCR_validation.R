@@ -109,16 +109,8 @@ dat_plot <- ddCT %>%
   mutate(miRNA = factor(miRNA, levels = mixedsort(unique(.$miRNA), decreasing = T)))
 
 
-
-# define colors 
-library("colorspace") 
-pal <- choose_palette()
-cols <- pal(20)
-cols <- c("#E2E2E2", "#DCDCDC" ,"#D1D1D1", "#C2C2C2", "#B1B1B1", "#9E9E9E", "#8A8A8A" ,"#747474" ,"#5E5E5E" ,"#474747")
-
-
 # calculation of sd on dCT values and calculation of ddCT by error propagation for ddCT values
-png("qPCR_val.png", units="in", width=9, height=6, res=600)
+png("Results/qPCR_val.png", units="in", width=9, height=6, res=600)
 dat_plot %>% 
   ggplot(aes(cell_line,ddCT,fill = cell_line)) +
   stat_boxplot(
@@ -134,18 +126,20 @@ dat_plot %>%
   geom_point(aes(cell_line,logFC_Fireplex), fill = "red", shape = 23) +
   facet_wrap(~miRNA, scales = "free") +
   geom_hline(yintercept = 0, lty = 3) +
-  theme_minimal() + 
-  theme(#legend.background = element_rect(colour = 'grey', fill = 'white', linetype='solid'),
+  # theme_minimal() + 
+  theme_PhD(axis.text.size = 8) +
+  theme(legend.background = element_rect(colour = 'grey', fill = 'white', linetype='solid'),
         legend.position = "bottom",
         axis.line.y.left   = element_line(color = 'black'),
         axis.ticks.y = element_line(), 
         panel.grid  = element_blank(), 
         axis.text.x = element_blank(),
+        axis.line.x = element_blank(),
+        axis.ticks.x = element_blank(),
         axis.title.x = element_blank())  +
   scale_y_continuous(limits = c(-2.2,2.2),breaks = seq(-2,2, 0.5)) +
-  scale_color_manual(values = cols[seq(2,10,2)], name = "cell line") +
-  scale_fill_manual(values = cols[seq(2,10,2)], name = "cell line") +
-  ylab("log2-FC") 
+  scale_fill_brewer(palette = "Greys") +
+  ylab("log2-FC")
 dev.off()
 
 

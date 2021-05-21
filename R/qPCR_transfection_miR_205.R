@@ -22,24 +22,34 @@ dat_antago <- dat_qPCR %>% filter(type == "antago")
 
 # ============================
 ## mimic 
-ddCT_mimic <- get_ddCT(dat_mimic, ID = "Name", group.ctrl = "time", ct.val = "mean_ct")
+ddCT_mimic <- get_ddCT(dat_mimic, ID = "Name", group.ctrl = "time", ct.val = "mean_ct") %>%
+  mutate(condition = factor(condition, levels = c("5nM_1.5microL", "5nM_3microL", "10nM_3microL")))
 
-ddCT_mimic %>%
+p_mimic <- ddCT_mimic %>%
   ggplot(aes(time,ddCT,fill = factor(condition))) +
+  geom_errorbar(stat = "summary", fun.data = "mean_sdl", fun.args = list(mult = 1),
+                position = position_dodge(0.48), width = 0.25, size = 0.6) +
   geom_bar(stat = "summary", fun = "mean",
             color = "black", position = position_dodge(0.48),
             mapping = aes(x = time,y =ddCT),
             width=0.4
-  ) + geom_errorbar(stat = "summary", fun.data = "mean_sdl", fun.args = list(mult = 1),
-                    position = position_dodge(0.48), width = 0.25, size = 0.6) +
-  theme_bw() +
-  scale_fill_brewer()
+  ) + 
+  theme_PhD(axis.text.size = 10) +
+  theme(
+    axis.title.x = element_blank(),
+    strip.background = element_blank(),
+    legend.position = "none"
+  ) +
+  scale_y_continuous(limits = c(0,6), breaks = seq(0,6,1), expand = c(0,0)) +
+  scale_fill_brewer(palette = "Greys")
 
 
 # ============================
 ## antago mir 
-ddCT_antago <- get_ddCT(dat_antago, ID = "Name", group.ctrl = "time", ct.val = "mean_ct")
+ddCT_antago <- get_ddCT(dat_antago, ID = "Name", group.ctrl = "time", ct.val = "mean_ct") %>%
+  mutate(condition = factor(condition, levels = c("5nM_1.5microL", "5nM_3microL", "10nM_3microL", "50nM_3microL")))
 
+png("Results/Antago_miR-205_qPCR_conditions.png", units="in", width=7, height=5, res=600)
 ddCT_antago %>%
   ggplot(aes(time, ddCT, fill = factor(condition))) +
   geom_errorbar(stat = "summary", fun.data = "mean_sdl", fun.args = list(mult = 1),
@@ -49,16 +59,18 @@ ddCT_antago %>%
            mapping = aes(x = time,y = ddCT),
            width=0.4
   )  + 
-  geom_hline(yintercept= 0) +
-  theme_PhD(axis.text.size = 8) +
+  geom_hline(yintercept= 0, lty = 2) +
+  theme_PhD(axis.text.size = 10) +
   theme(
     axis.title.x = element_blank(),
     axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),
     strip.background = element_blank(),
-    legend.key.size = (unit(0.7,"line")),
-    legend.position = "bottom"
-  ) +
+    legend.position = "none"
+  ) + 
+  scale_y_continuous(limits = c(-4,2), breaks = seq(-4,2,1)) +
   scale_fill_brewer(palette = "Greys")
-
+dev.off()
 
 
