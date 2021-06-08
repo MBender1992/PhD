@@ -481,7 +481,7 @@ Ht <- Heatmap(
 draw(Ht, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
 ```
 
-![**Fig. 4: Hierarchical clustering analysis of differentially expressed miRNAs between the five different cell lines.** K-means clustering was applied with k=3 splits as PCA indicated 3 distinct clusters (Met-1/Met-4, SCC-12/SCC-13 and SCL-II). These clusters are also present in the Heatmap displayed by the color code below the column dendrogram. Orange shows upregulation of miRNA expression, blue shows downregulation of miRNA expression. Clustering method: average linkage. Distance measure for miRNAs: pearson correlation. Distance measure for cell lines: euclidean distance. n = 4. )](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/Heatmap_cell_lines.png)
+![**Fig. 4: Hierarchical clustering analysis of differentially expressed miRNAs between the five different cell lines.** K-means clustering was applied with k=3 splits as PCA indicated 3 distinct clusters (Met-1/Met-4, SCC-12/SCC-13 and SCL-II). These clusters are also present in the Heatmap displayed by the color code below the column dendrogram. Orange shows upregulation of miRNA expression, blue shows downregulation of miRNA expression. Clustering method: average linkage. Distance measure for miRNAs: pearson correlation. Distance measure for cell lines: euclidean distance. n = 4. )](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/cell_line_Heatmap.png)
 
 The combined cluster analysis showed a clear separation of miRNA expression depending on the cell line context (A: SCC-12/SCC-13,B: SCL-II,C: Met-1/Met-4).
 The miRNAs were clustered in 4 groups. Cluster 1 was upregulated in cell line cluster A compared to cluster B and C. Cluster 2 was upregulated in cell line cluster B compared to cluster A and C. Cluster 4 was upregulated in cell line cluster C compared to A and B. Cluster 3 showed an intermediate expression of miRNAs in Cluster B and C with the lowest expression values observed in Cluster A.
@@ -1299,3 +1299,17 @@ plot_UV_sens <- dat_labelled %>%
 SCC-12 and SCC-13 show significantly higher absolute log2FC indicating a higher UV-responsiveness of these cell lines. Although not significantly changed, SCL-II also shows higher UV-sensitivity than Met-1 and Met-4. There are minor differences between cell lines in respect to which miRNAs are altered the most after UV irradiation, however miR-503-5p, miR-146a-5p and miR-30a-3p exhibit the highest differences in almost all cell lines. The lower UV-response in Met-1 and Met-4 might be due to a functional p53 protein and better DNA damage response.
 
 # 2 Knockdown of miR-205-5p
+
+## 2.1 Testing transfection conditions
+
+To assess Knockdown efficiency, SCC-12 cells were seeded at 40.000 cells per well in a 24-well Plate, incubated for 24 h in standard cell culture conditions and transfected with different concentrations of antagomir-205 or a control oligo using the HiPerfect Transfection Reagent (Qiagen). Cells were harvested 24 h and 72 h after transfection, RNA was isolated and miR-205 expression was quantified via qPCR. The results are shown in figure 15. 
+
+
+
+
+
+
+
+
+
+
