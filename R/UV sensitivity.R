@@ -83,7 +83,7 @@ dat_UV_sens %>%
 dat_UV_sens %>% 
   kruskal_test(abslog2FC~cell_line)
 
-# Wilcoxon-Mann-Whitney U test to compare groups pairwise
+# dunn test to compare groups pairwise
 dat_UV_sens %>% 
   dunn_test(abslog2FC~cell_line, p.adjust.method = "fdr")
  

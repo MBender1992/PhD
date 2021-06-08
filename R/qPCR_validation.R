@@ -138,12 +138,13 @@ dat_plot %>%
         axis.ticks.x = element_blank(),
         axis.title.x = element_blank())  +
   scale_y_continuous(limits = c(-2.2,2.2),breaks = seq(-2,2, 0.5)) +
-  scale_fill_brewer(palette = "Greys") +
+  #scale_fill_brewer(palette = "Greys") +
+  scale_fill_jco() + 
   ylab("log2-FC")
 dev.off()
 
 
-
+library(ggsci)
 
 
 # confidence interval plot
