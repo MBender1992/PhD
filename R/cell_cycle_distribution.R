@@ -5,6 +5,7 @@ library(tidyverse)
 library(ggpubr)
 library(ggsci)
 library(devtools)
+library(ggh4x)
 
 # source R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R") 
@@ -28,6 +29,6 @@ dat %>%
     legend.position = "bottom"
   ) +
   scale_fill_jco() +
-  scale_y_continuous(expand = c(0, 0), breaks = seq(0,100,20)) +
+  scale_y_continuous(expand = c(0, 0), guide = "axis_minor", breaks = seq(0,100,20)) +
   ylab("% of gated cells")
 dev.off()

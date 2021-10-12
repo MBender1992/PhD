@@ -5,6 +5,7 @@ library(tidyverse)
 library(ggpubr)
 library(ggsci)
 library(devtools)
+library(ggh4x)
 
 # source R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R") 
@@ -30,7 +31,10 @@ df %>%
     legend.position = "bottom"
   ) +
   scale_color_jco() +
-  scale_x_continuous(breaks = seq(0, 168, 24)) +
-  scale_y_continuous(limits = c(0,650000), expand = c(0, 0), breaks = seq(0,600000,50000)) +
+  scale_x_continuous(breaks = seq(0, 168, 24),expand = c(0, 0), guide = "axis_minor") +
+  scale_y_continuous(limits = c(0,650000), expand = c(0, 0), breaks = seq(0,650000,50000), guide = "axis_minor") +
   xlab("time after plating (h)") + 
   ylab("number of cells")
+
+
+

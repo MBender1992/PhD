@@ -11,32 +11,6 @@ source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_fu
 # source cluster analysis
 # source("R/Fireplex_cell_line_cluster_analysis.R") # if objects not loaded into workspace, load this file
 
-## functions to use
-# save volcano plot
-save_volcano_plot <- function(data,...){
-  png(paste("Results/",deparse(substitute(data)),"_volcano.png", sep = ""), units="in", width=5, height=4, res=600)
-  p <- rbiomirgs_volcano(gsadfm = data,topgsLabel = TRUE, xLabel = "model coefficient",...)
-  print(p)
-  dev.off() 
-}
-
-# save bar plot within volcano plot
-save_volcano_bar_plot <- function(data,print.all = TRUE,...){
-  if (print.all == TRUE){
-    png(paste("Results/",deparse(substitute(data)),"_volcano_bar.png", sep = ""), units="in", width=5, height=4, res=600)
-    p <- rbiomirgs_bar(gsadfm = data,signif_only = FALSE,gs.name = FALSE,
-                       n = "all",xLabel = "gene set", yLabel = "model coefficient",...)
-    print(p)
-  } else {
-    png(paste("Results/",deparse(substitute(data)),"_bar.png", sep = ""), units="in", width=5, height=4, res=600)
-    p <- rbiomirgs_bar(gsadfm = data,signif_only = TRUE,gs.name = TRUE,xLabel = "model coefficient",
-                       yTxtSize = 7, n = 15,...)
-    print(p)
-  }
-  dev.off()
-}
-
-
 
 ############################
 #       Controls           #
@@ -68,7 +42,7 @@ res_ctrl_KEGG <- pathway_ctrl_summary(ctrl_list_KEGG, n=n)
 
 # collect mRNA targets of the miRNAs upregulated in cluster 1A
 rbiomirgs_mrnascan(objTitle = "cl_1A_predicted", mir = cl_1A$miRNA, sp = "hsa", 
-                   queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
+                   queryType = "predicted",parallelComputing = TRUE, clusterType = "PSOCK")
 
 # calculate GS by logistic regression
 rbiomirgs_logistic(objTitle = "cl_1A_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_1A, 

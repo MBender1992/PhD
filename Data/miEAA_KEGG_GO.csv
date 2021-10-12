@@ -1,0 +1,41 @@
+Category,Subcategory,Expected,Observed,Q-value
+KEGG (miRPathDB),Small cell lung cancer,1.4081,12,5.14E-10
+KEGG (miRPathDB),Hepatitis B,2.09346,12,3.67E-08
+KEGG (miRPathDB),PI3K-Akt signaling pathway,1.75701,11,2.12E-07
+KEGG (miRPathDB),Estrogen signaling pathway,0.909657,9,2.93E-07
+KEGG (miRPathDB),Pathways in cancer,2.66667,12,2.93E-07
+KEGG (miRPathDB),Proteoglycans in cancer,1.98131,11,4.09E-07
+KEGG (miRPathDB),HTLV-I infection,1.45794,10,4.85E-07
+KEGG (miRPathDB),FoxO signaling pathway,2.09346,11,5.67E-07
+KEGG (miRPathDB),Adherens junction,1.08411,9,6.80E-07
+KEGG (miRPathDB),Focal adhesion,1.60748,10,9.12E-07
+KEGG (miRPathDB),VEGF signaling pathway,0.523364,7,1.37E-06
+KEGG (miRPathDB),Wnt signaling pathway,0.82243,8,1.37E-06
+KEGG (miRPathDB),Prostate cancer,2.42991,11,1.83E-06
+KEGG (miRPathDB),Acute myeloid leukemia,0.984424,8,5.08E-06
+KEGG (miRPathDB),Ras signaling pathway,1.00935,8,5.80E-06
+KEGG (miRPathDB),Chemokine signaling pathway,0.672897,7,6.09E-06
+KEGG (miRPathDB),NF-kappa B signaling pathway,0.411215,6,6.15E-06
+KEGG (miRPathDB),Gap junction,0.461059,6,1.19E-05
+KEGG (miRPathDB),Pancreatic cancer,1.74455,9,2.33E-05
+KEGG (miRPathDB),Neurotrophin signaling pathway,1.27103,8,2.73E-05
+Gene Ontology (miRWalk),GO0000785 chromatin,3.08688,12,8.08E-05
+Gene Ontology (miRWalk),GO0040018 positive regulation of multicellular organism growth,1.45145,10,8.08E-05
+Gene Ontology (miRWalk),GO0072593 reactive oxygen species metabolic process,1.55366,10,8.08E-05
+Gene Ontology (miRWalk),GO0043209 myelin sheath,1.20613,9,9.26E-05
+Gene Ontology (miRWalk),GO0071230 cellular response to amino acid stimulus,1.71721,10,9.26E-05
+Gene Ontology (miRWalk),GO0006909 phagocytosis,0.919932,8,1.51E-04
+Gene Ontology (miRWalk),GO0007507 heart development,3.4753,12,1.51E-04
+Gene Ontology (miRWalk),GO0001541 ovarian follicle development,2.63714,11,1.76E-04
+Gene Ontology (miRWalk),GO0031953 negative regulation of protein autophosphorylation,0.388416,6,1.76E-04
+Gene Ontology (miRWalk),GO0032967 positive regulation of collagen biosynthetic process,0.981261,8,1.76E-04
+Gene Ontology (miRWalk),GO0030279 negative regulation of ossification,1.43101,9,1.81E-04
+Gene Ontology (miRWalk),GO0005068 transmembrane receptor protein tyrosine kinase adaptor activity,0.69506,7,2.17E-04
+Gene Ontology (miRWalk),GO0007155 cell adhesion,3.78194,12,2.17E-04
+Gene Ontology (miRWalk),GO0051402 neuron apoptotic process,2.7598,11,2.17E-04
+Gene Ontology (miRWalk),GO0009314 response to radiation,2.08518,10,2.23E-04
+Gene Ontology (miRWalk),GO0010224 response to uv b,1.08348,8,2.49E-04
+Gene Ontology (miRWalk),GO0001666 response to hypoxia,3.9046,12,2.61E-04
+Gene Ontology (miRWalk),GO0006461 protein complex assembly,2.9029,11,2.61E-04
+Gene Ontology (miRWalk),GO0006470 protein dephosphorylation,2.94378,11,2.67E-04
+Gene Ontology (miRWalk),GO0007179 transforming growth factor beta receptor signaling pathway,3.98637,12,2.67E-04

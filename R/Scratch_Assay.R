@@ -1,0 +1,47 @@
+## <<<<<<<<<<<<<<<HEAD
+
+## load packages
+library(tidyverse)
+library(ggpubr)
+library(ggsci)
+library(devtools)
+library(ggh4x)
+
+# source R functions
+source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R") 
+
+# load data 
+dat <- read_csv("Data/Results_scratch_assay_transfection.csv") %>%
+  mutate(wound_closure = wound_closure*100)
+  
+# dat <- dat %>% group_by(Messung, time, treatment) %>% summarize(wound_closure = mean(wound_closure))
+
+dat_summary <- Rmisc::summarySE(dat, measurevar="wound_closure", groupvars=c("time","treatment"))
+
+png("Results/scratch_assay.png", units="in", width=4, height=3, res=300)
+dat_summary %>% 
+  ggplot(aes(time, wound_closure, color = treatment)) + 
+  # geom_smooth(method = "lm", se = F, lty = 1) +
+  geom_line() +
+  geom_errorbar(aes(ymin = wound_closure - sd, ymax = wound_closure + sd), width = 0.4) +
+  geom_point(size = 2) +
+  theme_PhD(axis.text.size = 8) +
+  theme(
+    axis.title.x = element_text(face = "bold", size = 8),
+    strip.background = element_blank(),
+    legend.key.size = (unit(0.7,"line")),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  ) +
+  scale_color_jco() +
+  xlab("Time (h)") +
+  ylab("Wound closure (%)") + 
+  scale_x_continuous(breaks = seq(0,24,4), guide = "axis_minor") +
+  scale_y_continuous(expand = c(0, 0), guide = "axis_minor", breaks = seq(0, 100, 20))
+dev.off()  
+
+
+
+
+# RMD Report?
+# Primer

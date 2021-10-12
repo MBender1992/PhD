@@ -9,8 +9,10 @@ library(circlize)
 # source R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
 
-# source statistical analysis
 # source("R/Fireplex_cell_line_statistics.R") # if objects not loaded into workspace, load this file
+#load data
+url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/PhD_MB_FirePlex_chronic_irr_20190620.csv" 
+dat <-  load_Fireplex_data_PhD(filename = url(url_file), threshold = 2.5)
 
 # Heatmap  transform data for Heatmap format
 dat_Heatmap <- dat %>% 
@@ -103,3 +105,9 @@ cl_1A <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 1, "A"), FUN=drop_
 cl_2B <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 2, "B"), FUN=drop_attr))
 # compare Cluster 4C to 4A and 4B, drop attributes and generate a data.frame
 cl_4C <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 4, "C"), FUN=drop_attr))
+
+
+
+
+
+
