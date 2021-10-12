@@ -1,10 +1,14 @@
 ---
-title: "Influence of UV irradiation on cSCC progression/metastasis assessed by epigenetic changes (miRNAs)"
+title: Influence of UV irradiation on cSCC progression/metastasis assessed by epigenetic
+  changes (miRNAs)
+author: "Marc Bender"
 output:
+  html_document:
+    df_print: paged
+    toc: yes
   html_notebook:
     theme: united
     toc: yes
-author: Marc Bender
 ---
 
 <style>
@@ -102,7 +106,7 @@ load_Fireplex_data_PhD <- function(filename, threshold)
     mutate(cell_line = str_replace_all(cell_line, "-","_"))
 }
 
-url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/200619_chronic_irr_normalized.csv" 
+url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/PhD_MB_FirePlex_chronic_irr_20190620.csv" 
 dat <-  load_Fireplex_data_PhD(filename = url(url_file), threshold = 2.5)
 dat
 ```
@@ -1298,9 +1302,23 @@ plot_UV_sens <- dat_labelled %>%
 
 SCC-12 and SCC-13 show significantly higher absolute log2FC indicating a higher UV-responsiveness of these cell lines. Although not significantly changed, SCL-II also shows higher UV-sensitivity than Met-1 and Met-4. There are minor differences between cell lines in respect to which miRNAs are altered the most after UV irradiation, however miR-503-5p, miR-146a-5p and miR-30a-3p exhibit the highest differences in almost all cell lines. The lower UV-response in Met-1 and Met-4 might be due to a functional p53 protein and better DNA damage response.
 
-# 2 Knockdown of miR-205-5p
+# 2 miRNA expression in cSCC tissue
 
-## 2.1 Testing transfection conditions
+To identify possible miRNAs with oncogenic function in cSCC which are induced by UV-radiation we compared tissue samples of patients with cSCC (n = 5) with skin biopsies of healthy donors from sun-exposed(n = 5) and sun-protected (n = 6) areas. Although there were no evident differences between sun-protected and sun-exposed skin the cSCC tissue was clearly separated in a hierarchical clustering analysis (Fig. 15A). Two distinct clusters showed miRNAs overexpressed in tumor tissue (Cluster 1A) and suppressed in tumor tissue (Cluster 4A). The miRNAs in Cluster 1A are well known onco-miRs which are overexpressed in various tumors. Genes targeted by all 3 miRNAs are shown in Fig. 15B. A pathway analysis conducted with the R package RBiomiRGS incorporating all known (experimentally validated) targets of the miRNA triplet revealed only one pathway (KEGG_AXON_GUIDANCE) to be overrepresented in the gene set (Fig. 15D). This is most likely due to the low number of miRNAs and therefore a low number of target genes. On the other hand the genes targeted by at least 7 miRNAs of downregulated miRNAs in cSCC tissue are shown in Fig. 15C and a pathway analysis revealed the activation of pathways like KEGG_ERBB_SIGNALING_PATHWAY or KEGG_MAPK_SIGNALING_PATHWAY indicating activation of growth related signaling pathways in tumor tissue. 
+
+A second pathway analysis tool (miRTargetlink 2.0) yielded similar results with even more tumor related pathways overrepresented in the gene set targeted by the miRNAs in Cluster 4A. On top of growth related pathways there are also other tumor associated pathways like KEGG_VEGF_SIGNALING_PATHWAY (angiogenesis) or KEGG_ADHERENS_JUNCTION and KEGG_FOCAL_ADHESION (migration) that were enriched (in the top 20) using this webtool. 
+In the top 20 enriched GO terms it was evident that the biological function of these miRNAs is closely related to the response to (UV) radiation and growth related signaling pathways. 
+
+In summary the miRNA expression between tumor tissue and skin (without differences between sun-exposed or sun-protected areas) is very distinct for certain miRNAs with a subset of downregulated miRNAs in tumor tissue involved in cell growth, cell migration, tumor progression and the response to UV radiation. This indicates that - although not altered in sun-exposed skin - these miRNAs are associated to a chronic and in the end failed response to genotoxic stress exerted by UV-radiation. 
+
+Taken together with the findings obtained *in vitro* there was only one miRNA that is downregulated in cSCC tissue as well as subsequent to chronic UV radiation in all 5 cell lines: miRNA-205. This miRNA might play a crucial role in the UV-induced carcinogenesis of cSCC. To examine the effects of miR-205 on a mechanistic level we performed *in vitro* knockdown experiments and investigated endpoints like cell growth, cell cylce distribution, apoptosis, migration, invasion as well as expression of prominent tumor associated genes targeted by miR-205.
+
+
+![**Fig. 15: miRNA expression in cSCC tissue compared to sun-exposed and sun-protected skin.** A: Hierarchical clustering analysis of differentially expressed miRNAs in cSCC tissue. B: Network analysis of miRNAs overexpressed in cSCC tissue. C: Network analysis of miRNAs suppressed in cSCC tissue. D: Pathway analysis miRNA targets shown in B generated with BiomiRGS. E: Pathway analysis of miRNA targets shown in C. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/tissue_cSCC_miRNas_pathway.png)
+
+# 3 Knockdown of miR-205-5p
+
+## 3.1 Testing transfection conditions
 
 To assess Knockdown efficiency, SCC-12 cells were seeded at 40.000 cells per well in a 24-well Plate, incubated for 24 h in standard cell culture conditions and transfected with different concentrations of antagomir-205 or a control oligo using the HiPerfect Transfection Reagent (Qiagen). Cells were harvested 24 h and 72 h after transfection, RNA was isolated and miR-205 expression was quantified via qPCR. The results are shown in figure 15. 
 
@@ -1342,14 +1360,24 @@ ddCT_antago %>%
   scale_y_continuous(limits = c(-4,2), breaks = seq(-4,2,1)) +
   scale_fill_brewer(palette = "Greys")
 ```
-![**Fig. 15: Testing of different miR-205 Knockdown conditions.** Data were normalized to the geometric mean of miR-16, sno44 and sno48 expression. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/Antago_miR-205_qPCR_conditions_legend.png)
+![**Fig. 16: Testing of different miR-205 Knockdown conditions.** Data were normalized to the geometric mean of miR-16, sno44 and sno48 expression. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/Antago_miR-205_qPCR_conditions_legend.png)
 
 
-## 2.2 growth analysis
+## 3.2 growth analysis
 
-## 2.3 cell cycle distribution
+![**Fig. 17: Title.** Text ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/.png)
 
-![**Fig. 16: Cell cycle distribution of miR-205 Knockdown and control transfected cells.** A: Cell cycle distribution of control transfected cells. B: Cell cycle distribution of cells transfected with antagomir-205. C: Barplot showing the percentage of G1, S and G2 phase in the differently treated cells at different timepoints.  ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/cell_cycle_distribution_combined.png)
+## 3.3 cell cycle distribution
+
+![**Fig. 18: Cell cycle distribution of miR-205 Knockdown and control transfected cells.** A: Cell cycle distribution of control transfected cells. B: Cell cycle distribution of cells transfected with antagomir-205. C: Barplot showing the percentage of G1, S and G2 phase in the differently treated cells at different timepoints.  ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/cell_cycle_distribution_combined.png)
+
+# 4 TGF beta
+
+The knockdown experiments with solely miR-205 did not show any differences in phenotypes of control or transfected cells, although miR-205 was stably downregulated. However target genes were only upregulated 24h post transfection and even showed downregulation 72h post transfection with a normalization of gene expression 144h post  transfection. This indicates a negative feedback mechanism that ensures cell homeostasis. Moreover it is known that cancer is orchestrated by a multitude of potentially carcinogenic events - each of its own not sufficient for tumorigenesis - which in sum lead to cancer formation and progression. We therefore speculated that miR-205 suppression alone is not sufficient to increase migration or invasion processes connected to EMT (which is a crucial process on the way to metastases). Indeed it was shown that miR-205 regulates EMT together with TGF-beta, where miR-205 suppresses EMT and TGF-beta induces EMT. Furthermore TGF-beta is upregulated following UV irradiation and also frequently upregulated in cSCC tumors. Therefore it is likely that overexpression of TGF-beta in co-operation with downregulation of miR-205 induces EMT in a synergistic process. 
+
+To test this hypothesis the different endpoint analysis of section 3 were repeated and two additional treatment options were examined. (control, TGFb+, miR-205-, TGFb+ und miR-205-)
+
+
 
 
 
