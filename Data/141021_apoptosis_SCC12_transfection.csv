@@ -1,0 +1,13 @@
+ID,transfection,staurosporin, early_apoptosis, late_apoptosis_necrosis, living_cells
+1,ctrl,ctrl,2.18,5.44,91.96
+2,ctrl,ctrl,1.88,3.29,93.5
+3,anti-miR-205,ctrl,2.88,6.04,90.19
+4,anti-miR-205,ctrl,4.7,6.24,87.94
+5,ctrl,0.1 microM,10.14,6.46,82.56
+6,ctrl,0.1 microM,9.26,6.96,82.68
+7,anti-miR-205,0.1 microM,9.7,7.26,82.34
+8,anti-miR-205,0.1 microM,10.14,5.14,84.22
+9,ctrl,1 microM,10.34,7.47,81.62
+10,ctrl,1 microM,11.3,9.04,79.02
+11,anti-miR-205,1 microM,12.2,9.31,77.92
+12,anti-miR-205,1 microM,13.42,6.76,79.6

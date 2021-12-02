@@ -11,14 +11,14 @@ library(ggh4x)
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R") 
 
 # load data 
-dat <- read_csv("Data/Results_scratch_assay_transfection.csv") %>%
+dat <- read_csv("Data/Results_scratch_assay_TGFbeta.csv") %>%
   mutate(wound_closure = wound_closure*100)
   
 # dat <- dat %>% group_by(Messung, time, treatment) %>% summarize(wound_closure = mean(wound_closure))
 
 dat_summary <- Rmisc::summarySE(dat, measurevar="wound_closure", groupvars=c("time","treatment"))
 
-png("Results/scratch_assay.png", units="in", width=4, height=3, res=300)
+png("Results/scratch_assay_TGFbeta.png", units="in", width=4, height=3, res=300)
 dat_summary %>% 
   ggplot(aes(time, wound_closure, color = treatment)) + 
   # geom_smooth(method = "lm", se = F, lty = 1) +

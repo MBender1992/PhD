@@ -158,8 +158,8 @@ dat_plot <- facet_limits(dat_summary, "geomean + geosd", "miRNA") %>%
   mutate(cell_line = str_replace_all(cell_line, "_","-"))
 
 # define limits of errorbar to only show upper errorbar
-limits <- aes(ymax = ifelse(geomean>0,geomean + geosd,geomean/2),
-              ymin = ifelse(geomean<0,geomean - geosd,geomean/2))
+limits <- aes(ymax = ifelse(geomean>0,geomean + geosd,geomean),
+              ymin = ifelse(geomean<0,geomean - geosd,geomean))
 
 
 
@@ -202,7 +202,8 @@ dat_plot %>%
   ) +
   geom_blank(aes(y = y_min)) +
   geom_blank(aes(y = y_max)) + 
-  scale_fill_manual(values = grey.colors(5,start=1,end=0.2))  +
+  # scale_fill_manual(values = grey.colors(5,start=1,end=0.2))  +
+  scale_fill_jco(alpha = 0.7) +
   scale_y_continuous(expand = c(0, 0)) +
   ylab("miRNA expression (a.u.)")
 
@@ -238,7 +239,7 @@ dat_plot %>%
     position=position_dodge(),
     width= 0.5
   ) +
-  facet_wrap(~miRNA,scales="free")+ 
+  facet_wrap(~miRNA, scales= "free")+ 
   theme_PhD(axis.text.size = 8) +
   theme(
     axis.title.x = element_blank(),
@@ -248,9 +249,12 @@ dat_plot %>%
   ) +
   geom_blank(aes(y = y_min)) +
   geom_blank(aes(y = y_max)) + 
-  scale_fill_manual(values = grey.colors(5,start=1,end=0.2))  +
+  # scale_fill_manual(values = grey.colors(5,start=1,end=0.2))  +
+  scale_fill_jco(alpha = 0.7) +
   scale_y_continuous(expand = c(0, 0)) +
   ylab("miRNA expression (a.u.)")
 
 dev.off()
+
+
 

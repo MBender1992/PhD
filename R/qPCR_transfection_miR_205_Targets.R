@@ -22,14 +22,14 @@ dat_qPCR <- read_excel("Data/miR-205_Targets_240821.xlsx") %>%
 dat_HK <- dat_qPCR %>% 
   group_by(Name, Messung) %>%
   filter(gene_type == "HK") %>%
-  mutate(geomean_HK = geoMean(mean_ct, na.rm=T))  %>%
+  mutate(geomean_HK = geoMean(mean2_ct, na.rm=T))  %>%
   distinct(geomean_HK) 
 
 dat_dCT <- inner_join(dat_qPCR, dat_HK, by = c("Name", "Messung")) %>%
   ungroup() %>%
   filter(gene_type != "HK") %>%
   select(-gene_type) %>%
-  mutate(dCT = geomean_HK - mean_ct)
+  mutate(dCT = geomean_HK - mean2_ct)
 
 ddCT <- dat_dCT %>% 
   group_by(gene_name, time, Messung) %>%
@@ -39,20 +39,26 @@ ddCT <- dat_dCT %>%
   mutate(ddCT = dCT - ctrl_dCT) %>%
   ungroup()
 
+
+
+# plot
 dat_plot <- ddCT %>%
   mutate(time = factor(time, levels = c("24h", "72h", "144h")))
 
+png("Results/Antago_miR-205_targets.png", units="in", width=7, height=5, res=600)
 dat_plot %>% 
   filter(!is.na(ddCT)) %>% 
   ggplot(aes(gene_name, ddCT, fill = gene_name)) +
-  geom_errorbar(stat = "summary", fun.data = "mean_sdl", fun.args = list(mult = 1),
-                position = position_dodge(0.48), width = 0.25, size = 0.6) + # add only errorbars to one side of the bars
-  geom_bar(stat = "summary", fun = "mean",
-           color = "black", position = position_dodge(0.48),
-           mapping = aes(x = gene_name,y = ddCT),
-           width=0.4
-  )  + 
-    facet_wrap(~time) +
+  # geom_errorbar(stat = "summary", fun.data = "mean_sdl", fun.args = list(mult = 1),
+  #               position = position_dodge(0.48), width = 0.25, size = 0.6) + # add only errorbars to one side of the bars
+  # geom_bar(stat = "summary", fun = "mean",
+  #          color = "black", position = position_dodge(0.48),
+  #          mapping = aes(x = gene_name,y = ddCT),
+  #          width=0.4
+  # )  +
+  geom_boxplot(width = 0.4, outlier.shape = NA) +
+  geom_jitter(position = position_jitterdodge(0.1), alpha = 0.7) +
+  facet_wrap(~time) +
   geom_hline(yintercept= 0, lty = 2) +
   theme_PhD(axis.text.size = 10) +
   theme(
@@ -60,8 +66,8 @@ dat_plot %>%
     strip.background = element_blank(),
     legend.position = "none"
   ) + 
-  scale_y_continuous(breaks = seq(-1,2.5, 0.5)) +
+  scale_y_continuous(limits = c(-2.2, 4), breaks = seq(-2,4, 0.5)) +
   scale_fill_brewer(palette = "Blues")
- 
+ dev.off()
 
 

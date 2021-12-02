@@ -5,7 +5,7 @@ library(tidyverse)
 library(ggpubr)
 library(devtools)
 library(EnvStats)
-
+library(rstatix)
 
 # source R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
@@ -50,6 +50,7 @@ ddCT_antago <- get_ddCT(dat_antago, ID = "Name", group.ctrl = "time", ct.val = "
   mutate(condition = factor(condition, levels = c("5nM_1.5microL", "5nM_3microL", "10nM_3microL", "50nM_3microL"))) %>%
   select(-c(gene_name, type))
 
+
 # add dummy data
 df <- data.frame(
   time = "144h",
@@ -57,8 +58,11 @@ df <- data.frame(
   ddCT = 0
 )
 
+# statistics
+ddCT_antago %>% group_by(time, condition) %>% t_test(ddCT~1, mu = 0, alternative = "less") %>% adjust_pvalue(method = "fdr")
+
 png("Results/Antago_miR-205_qPCR_conditions.png", units="in", width=7, height=5, res=600)
-bind_rows(ddCT_antago, df)  %>%
+bind_rows(ddCT_antago, df) %>%
   mutate(time = factor(time, levels = c("24h", "72h", "144h"))) %>%
   ggplot(aes(time, ddCT, fill = factor(condition))) +
   geom_errorbar(stat = "summary", fun.data = "mean_sdl", fun.args = list(mult = 1),
@@ -67,7 +71,9 @@ bind_rows(ddCT_antago, df)  %>%
            color = "black", position = position_dodge(0.48),
            mapping = aes(x = time,y = ddCT),
            width=0.4
-  )  + 
+  )  +
+  # geom_boxplot(outlier.shape = NA, width = 0.4, position = position_dodge(0.5)) +
+  geom_jitter(alpha = 0.7, position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.5)) +
   geom_hline(yintercept= 0, lty = 2) +
   theme_PhD(axis.text.size = 10) +
   theme(
@@ -81,7 +87,6 @@ bind_rows(ddCT_antago, df)  %>%
   scale_y_continuous(limits = c(-4,2), breaks = seq(-4,2,1)) +
   scale_fill_brewer(palette = "Greys")
 dev.off()
-
 
 
 
