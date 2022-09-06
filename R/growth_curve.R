@@ -18,6 +18,7 @@ df <- dat %>%
   summarize(mean = mean(cell_number), sd = sd(cell_number)) %>%
   mutate(lower = mean - sd, upper = mean + sd)
 
+png("Results/Growth_curve.png", units="in", width=7, height=5, res=600)
 df %>% 
   ggplot(aes(time, mean, color = treatment, shape = treatment)) + 
   geom_point(size = 3) +
@@ -35,6 +36,6 @@ df %>%
   scale_y_continuous(limits = c(0,650000), expand = c(0, 0), breaks = seq(0,650000,50000), guide = "axis_minor") +
   xlab("time after plating (h)") + 
   ylab("number of cells")
-
+dev.off()
 
 

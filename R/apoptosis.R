@@ -6,6 +6,7 @@ library(ggpubr)
 library(devtools)
 library(ggsci)
 library(ggh4x)
+library(rstatix)
 
 # source R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
@@ -33,7 +34,7 @@ dat_apo %>%
            width=0.6) +
   geom_errorbar(stat = "summary", fun.data = "mean_sdl", fun.args = list(mult = 1),
                 position = position_dodge(0.7), width = 0.25, size = 0.6) + # add only errorbars to one side of the bars
-  facet_wrap(~ apoptosis)  +
+  facet_wrap(~ apoptosis, scales = "free")  +
   # geom_point(position = position_dodge(0.7)) +
   theme_PhD(axis.text.size = 10) +
   theme(
