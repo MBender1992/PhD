@@ -7,7 +7,6 @@ library(ComplexHeatmap)
 library(circlize)
 library(RBiomirGS)
 library(ggpubr)
-library(limma)
 
 # source R functions
 source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
@@ -21,26 +20,6 @@ dat_tissue <- read_csv(filename) %>%
   mutate(Gruppe = factor(Gruppe, levels = c("Unexposed skin", "Exposed skin", "Tumor")))
 
 colnames(dat_tissue) <- gsub("mir", "miR", colnames(dat_tissue))
-
-# dat_stat <- dat_tissue %>% select(-Gruppe) %>% column_to_rownames("ID") %>% t()
-# dat_stat <- ifelse(is.infinite(log(dat_stat)), 0,log(dat_stat))
-# 
-# group_list <- factor(
-#   x = c(rep("Tumor",5),  rep("Skin", 11)),
-#   levels=c("Skin", "Tumor")                     
-# )
-# 
-# design           <- model.matrix(~0+group_list) 
-# colnames(design) <- c("Skin", "Tumor")  
-# contrast_matrix  <-makeContrasts(Skin-Tumor, levels=group_list)
-# 
-# 
-# # fit limma object, apply contrasts and eBayes smoothing to calculate pvals
-# fit <- lmFit(dat_stat, design=design)
-# fit_contrasts<-contrasts.fit(fit,contrast_matrix)
-# fit_contrasts2<-eBayes(fit_contrasts)
-# 
-# topTable(fit_contrasts2, coef = 1, p.value = 0.05) 
 
 dat_tissue <- dat_tissue %>% 
   mutate(ID = str_replace_all(.$ID, "tumor_1_", "cSCC-Tumor-")) %>%
@@ -72,7 +51,7 @@ colorbar <- HeatmapAnnotation(
   )
 )
 
-col_fun = colorRamp2(c(-1.8, 0, 1.8), c(c("#cc00cc", "black", "#FFFF00")))
+col_fun = colorRamp2(c(-1.8, 0, 1.8), c(c("#54278f", "black", "#FFFF00")))
 
 Ht_tissue <- Heatmap(dat_scaled_tissue,col= col_fun,
               top_annotation = colorbar,
@@ -98,11 +77,11 @@ Ht_tissue <- Heatmap(dat_scaled_tissue,col= col_fun,
                 legend_width = unit(4, "cm")
               ))
 
-svg("Results/cSCC_tissue_Heatmap.svg", width=4, height=8)
+png("Results/cSCC_tissue_Heatmap.png", units="in", width=4, height=6.5, res=600)
 draw(Ht_tissue, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
 dev.off()
 
-svg("Results/cSCC_tissue_miR200_family.svg", units="in", width=5, height=3, res=600)
+png("Results/cSCC_tissue_miR200_family.png", units="in", width=5, height=3, res=600)
 dat_tissue %>% select(ID, Gruppe, `hsa-miR-200b-3p`, `hsa-miR-200c-3p`, `hsa-miR-429`) %>%
   gather(miRNA, exp, -c(ID, Gruppe)) %>%
   mutate(Gruppe = ifelse(Gruppe == "Tumor", "Tumor", "Skin")) %>%
@@ -185,7 +164,7 @@ cl_1A_tissue_KEGG_plot <- cl_1A_tissue_predicted_mirna_mrna_iwls_KEGG_GS %>% fil
 
 
 #plot results (volcano plot)
-save_volcano_plot(cl_1A_tissue_KEGG_plot, n = 15, gsLabelSize = 2, sigColour = "red")
+save_volcano_plot(cl_1A_tissue_KEGG_plot, n = 0, gsLabelSize = 2, sigColour = "blue")
 # plot distribution of enriched gene sets
 save_volcano_bar_plot(cl_1A_tissue_KEGG_plot, print.all = TRUE)
 # plot top enriched gene sets
@@ -218,7 +197,7 @@ cl_4A_tissue_KEGG_plot <- cl_4A_tissue_predicted_mirna_mrna_iwls_KEGG_GS %>% fil
 
 
 #plot results (volcano plot)
-save_volcano_plot(cl_4A_tissue_KEGG_plot, n = 15, gsLabelSize = 2, sigColour = "red")
+save_volcano_plot(cl_4A_tissue_KEGG_plot, n = 0, gsLabelSize = 2, sigColour = "blue")
 # plot distribution of enriched gene sets
 save_volcano_bar_plot(cl_4A_tissue_KEGG_plot, print.all = TRUE)
 # plot top enriched gene sets
@@ -263,7 +242,6 @@ save_volcano_bar_plot(cl_4A_tissue_KEGG_plot, print.all = FALSE)
 # save_volcano_bar_plot(cl_1A_tissue_GO_BP_plot, print.all = TRUE)
 # # plot top enriched gene sets
 # save_volcano_bar_plot(cl_1A_tissue_GO_BP_plot, print.all = FALSE)
-
 
 
 
