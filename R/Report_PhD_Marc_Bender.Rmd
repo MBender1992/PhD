@@ -1,0 +1,1383 @@
+---
+title: Influence of UV irradiation on cSCC progression/metastasis assessed by epigenetic
+  changes (miRNAs)
+author: "Marc Bender"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+  html_notebook:
+    theme: united
+    toc: yes
+---
+
+<style>
+  p.caption {
+    font-size: 0.8em;
+  }
+body {
+  text-align: justify}
+</style>
+
+
+
+# Preamble
+
+This document serves as a summary of the data analysis conducted during my PhD thesis. It is structured chronologically to emphasize decision making based on the previous results. The basic question was if UV radiation influences tumor growth beyond initiation e.g. by induction of genomic changes or epigenetic alterations resulting in tumor progression and metastasis of cutaneous squamous cell carcinoma (cSCC). All miRNAs in the following study were human miRNAs. Data is available at:
+
+  + Fireplex Analysis: https://github.com/MBender1992/PhD/blob/Marc/Data/PhD_MB_FirePlex_chronic_irr_20190620.csv
+  + qPCR validation of fireplex results: https://github.com/MBender1992/PhD/blob/Marc/Data/PhD_MB_qPCR_validation_Fireplex_20201015.csv 
+
+### Loading of required packages
+
+```{r, message = FALSE, warning = FALSE}
+# data wrangling and basic visualization
+library(tidyverse)
+library(ggpubr)
+library(data.table)
+library(gtools)
+# statistics
+library(rstatix)
+library(EnvStats) 
+# Heatmap
+library(ComplexHeatmap)
+library(circlize)
+# PCA
+library(FactoMineR)
+library(factoextra)
+# pathway analysis
+library(RBiomirGS)
+# parallel computing and access of internet data
+library(devtools)
+library(doParallel)
+
+# source custom R functions
+source_url("https://raw.githubusercontent.com/MBender1992/base_scripts/Marc/R_functions.R")  
+```
+
+
+# 1. Screening for UV induced miRNAs
+## 1.1 Experimental setup and data ingestion
+In a first step we screened 51 manually curated miRNAs associated with cSCC or other epithelial tumors for UV induced changes. To this end, five different cancer cell lines (SCL-II, Met-1, Met-4, SCC-12, SCC-13; Fig. 1) were grown under standard cell culture conditions with DMEM (Met-1,Met-4, SCL-II) or FAD (SCC-12, SCC-13) as cell culture media. Cells were grown to 80 % confluency and exposed to 103 kJ/m² (physical doses: 246.01 J/m² UVB (280-315 nm); 12.50 kJ/m² UVA (315-400 nm); 28.03 kJ/m² VIS (400-750 nm); 61.74 kJ/m² IR-A (750-1200 nm)) sunlight-equivalent radiation (SER) with a custom-built irradiation device 
+(KAUVIR: https://www.fona.de/de/massnahmen/foerdermassnahmen/strahlenforschung.php). The cells were treated eight times with this dose over a time course of 4 weeks (irradiation twice a week) to simulate a chronic UV exposure. For the analysis 4 biological replicates were used.  
+
+
+![**Fig. 1: Cell line characteristics of the tumor cell lines used in this study.**  The cell lines exhibit different levels of differentiation with SCC-13 being highly differentiated and SCL-II being undifferentiated. p53 mutations are present in all cell lines except Met-1 and Met-4. Met-1 and Met-4 are cell lines from the same patient in different stages of the tumor.)](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/cell_line_characterization_cropped.png)
+
+
+After irradiation, cells were harvested and subjected to FirePlex immunoassay (abcam;  https://www.abcam.com/nav/multiplex-assays/fireplex-immunoassays) to detect changes in miRNA expression using barcode-labelled probes. Data was imported to the complimentary workbench software and normalized to the 12 most stable miRNAs using the built-in algorithm.
+
+
+```{r}
+normalizers <- c("miR-23a-3p","miR-23b-3p", "miR-24-3p", "miR-26a-3p", "miR-30b-3p", "miR-22-3p", "miR-16-5p", "miR-221-3p", "miR-15a-3p", "miR-29a-3p", "let-7f-5p", "miR-29c-3p")
+normalizers
+```
+   
+Subsequently, data was imported into R using the following function, to exclude miRNAs with a median expression below an arbitrary threshold, convert data from wide to tidy data and add a column with log2-transformed values as expression data follows a log-normal distribution (Beal 2017, https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=7991639) :   
+
+```{r, message = FALSE}
+load_Fireplex_data_PhD <- function(filename, threshold)
+{
+  # check if required package is installed and load it
+  if (!require(dplyr)) install.packages("dplyr")
+  library(dplyr)
+  
+  #load data and change hyphens to underscores so r does not confuse a hyphen with minus
+  dat <- read_csv(filename)
+  names(dat) <- str_replace_all(names(dat), "-","_")
+  # clean up the data, convert to tidy format and replace negative expression values with 0 as expression        cannot be negative
+  dat_f <- dat %>% 
+    select(-Messung) %>%
+    filter(cell_line != "HaCaT") %>%
+    gather(miRNA, expression, -c(ID,cell_line, Irradiation)) %>% 
+    mutate(expression = ifelse(expression < 0, 0, expression))  
+  # index miRNAs with a median expression below the threshold
+  ind <- dat_f %>%
+    group_by(miRNA) %>%
+    filter(median(expression, na.rm=TRUE) <= threshold) %>%
+    .$miRNA %>% 
+    unique() 
+  # omit indexed miRNAs and add log2-transformed expression values 
+  dat_f %>% 
+    filter(!miRNA %in% ind) %>%
+    mutate(log_exp = log2(expression+1)) %>%
+    mutate(miRNA = str_replace_all(miRNA, "hsa_", "")) %>%
+    mutate(miRNA = str_replace_all(miRNA, "_","-")) %>%
+    mutate(cell_line = str_replace_all(cell_line, "-","_"))
+}
+
+url_file <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/PhD_MB_FirePlex_chronic_irr_20190620.csv" 
+dat <-  load_Fireplex_data_PhD(filename = url(url_file), threshold = 2.5)
+dat
+```
+
+The threshold was set to 2.5 (a.u.) as this is the detection limit of the assay as indicated by the manufacturers instructions. After applying this threshold 40 out of the intially 51 examined miRNAs remained in the analysis.
+\
+\
+
+## 1.2 Principal component analysis (PCA)
+
+### 1.2.1 Theoretical Background
+*Note: Explanation from Statquest (YouTube) concerning PCA. An illustration of principal components for an example with 2 variables:*
+
+Data is plotted as var1 vs var2 (var1 on the x-axis, var2 on the y-axis). The center of this data is calculated and the data points are shifted so the center is at the origin (0,0). However, the relationship of the data points due to this rescaling did NOT change. A random line going through the origin is fitted, the original data points are projected onto this line and the distances from the origin to these projected points are calculated. The sum of squared distances (to avoid negative values cancelling out positive ones) is calculated as (SS(distances)): 
+$$
+\begin{aligned}
+SS(distances) = d_{1}^2 + d_{2}^2 + ... + d_{n}^2
+\end{aligned}
+$$
+with n = sample size
+
+The line is rotated around the origin and the line with the maximum SS(distances) becomes PC1. This lines' slope can be used to calculate singular vectors or Eigenvectors by looking at how many units the line goes along the x-axis in positive direction (b) if moved 1 unit in positive direction of the y-axis (c). Using pythagorean theorem the distance a (value along the slope) is equal to:  
+$$
+\begin{aligned}
+a = \sqrt{b^2+c^2}
+\end{aligned}
+$$
+which can be easily calculated. 
+  
+  + example: The slope is 0.25, then b=4 for c=1, using pythagorean theorem: 
+  
+$$
+\begin{aligned}
+a = \sqrt{b^2+c^2} = \sqrt{4^2+1^2} = \sqrt{16+1} = 4.12
+\end{aligned}
+$$
+a, b and c are then scaled by factor a, which in turn leads to a being 1:
+
+$$
+\begin{aligned}
+a(scaled) & = \frac{a}{a} = 1\\
+b(scaled) & = \frac{b}{a} = 0.97\\
+c(scaled) & = \frac{c}{a} = 0.242\\
+\end{aligned}
+$$
+This 1 unit long vector consisting of b(scaled) in the x-direction and c(scaled) in the y-direction is the Eigenvector consisting of 0.97 units var1 and 0.242 units var2. The Factors b(scaled) and c(scaled) are called loading scores and correspond to the importance of a particular variable to a principal component.
+In this example the loading scores tell us, in terms of how the values are projected onto PC1, var1 is 4 (0.97/0.242) times more important than var2. 
+
+In the case of only 2 variables PC2 is simply the line that is perpendicular to PC1. Then, the samples are also projected onto the PC2 axis. These projections of data on PC1 and PC2 on the PC1 and PC2 axis are then rotated so PC1 is horizontal. Afterwards out of these projections new positions for the samples are generated in the PC1 vs PC2 space.
+
+The more dimensions the more complex this process gets, the PCs however are always perpendicular to each other and are uncorrelated.
+The issue of growing complexity when considering more than three dimensions can be solved mathematically as another word for SS(distances) is Eigenvalues, which can be computed by matrix algebra. Out of these Eigenvalues, the Eigenvectors can be constructed and eventually the PC lines can be generated even for high-dimensional data.
+
+The variance of the PCs is simply the Eigenvalues or SS(distances) divided by the sample size minus one (n-1):
+$$
+\begin{aligned}
+var(PC_{i}) &= \frac{SS(distances(PC_{i}))}{n-1}\\
+\end{aligned}
+$$
+These variances can be used to calculate the proportion of variance in the data explained by each PC (variance explained) using the sum of variances :
+$$
+\begin{aligned}
+Sum(variances) = \sum_{i = 1}^n var(PC_{i})
+\end{aligned}
+$$
+To get the variance explained for each PC, the variance of the respective PC is divided by the sum of variances of all PCs.
+
++ Example to calculate variance explained for PC1 if var(PC1) is 15 and var(PC2) is 3:
+
+$$
+\begin{aligned}
+\frac{var(PC_{1})}{\sum_{i = 1}^n var(PC_{i})} = \frac{var(PC_{1})}{var(PC_{1})+var(PC_{2})} = \frac{15}{15+3} = 0.8\bar3 = 83.\bar3 \ \%
+\end{aligned}
+$$
+
+In this example PC1 would explain 83.3 % of the variance in the data and PC2 would explain 16.7 % of the variance in the data. In R the prcomp function generates 3 parameters: x, sdev and rotation
+
++ **x** contains the PCs to draw a graph
++ **sdev** is the standard deviation of the PCs and can be transferred to the variance by squaring sdev and subsequently be used to calculate the variance explained
++ **rotation** corresponds to the loading scores which show the importance of variables in respect to each PC
+\
+\
+
+### 1.2.2 Analysis
+
+Afterwards, data was analyzed for general changes between cell lines. As explorative analysis,PCA was chosen as it breaks down multidimensional data and facilitates visualization of the underlying data structure. 
+
+```{r}
+# transform data for the format required by "PCA"
+dat_PCA <- dat %>% 
+  select(-c(expression)) %>%
+  spread(miRNA, log_exp) %>%
+  mutate(cell_line = str_replace_all(cell_line, "_","-"))
+
+# scale data and perform PCA
+res.pca <- PCA(dat_PCA[, -c(1:3)],  scale.unit = T, ncp = 5, graph = F)
+
+# extract results and chose which PCs to use
+eig.val <- get_eigenvalue(res.pca)
+
+head(eig.val)
+
+```
+
+As shown above, when using three dimensions, the analysis is able to explain more than 70 % of the variance in the data. As we add more dimensions the explanation improves, naturally, however for visualization reasons and the complexity of imagining more than three dimensions, only the comparison of PC1 vs PC2, PC1 vs PC3 and PC2 vs PC3 are shown (Fig. 2).  
+
+```{r}
+fviz_pca_ind(
+  res.pca,
+  # Fill individuals by groups
+  geom.ind = "point",
+  fill.ind = dat_PCA$cell_line,
+  col.ind = "black",
+  pointshape = 21, 
+  pointsize = dat_PCA$Irradiation,
+  palette = "jco",
+  addEllipses = T,
+  axes = c(1, 2),
+  # Variables
+  alpha.var =0.5,
+  mean.point = F,
+  ellipse.level=0.8,
+  legend.title = list(fill = "Cell line")
+) + 
+  scale_size_manual(values = c(2,4))
+```
+![**Fig. 2: PCA of the irradiated cell lines Met-1, Met-4, SCC-12, SCC-13, SCL-II.** Large circles show irradiated samples, small circles indicate control samples. Dim1 is equivalent to Principal Component 1 (PC1), etc. Ellipses are drawn around the respective cell lines for illustration. The variance explained is shown in parentheses. NOTE: The code above only shows the plot for PC1 vs PC2 (axes = c(1,2)). The image was generated by saving the 3 different images (A: PC1 vs PC2,B: PC1 vs PC3,C: PC2 vs PC3) and combining them in power point. n = 4.](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/PCA_combined.png)
+
+
+A separation of SCC-12/SCC-13 and Met-1/Met-4 is evident along the PC1 axis, PC2 separates SCL-II from all other cell lines. Within clusters (ellipses) irradiated cells (big circles) form subclusters in the PC1 vs PC2 plot as well as in the PC2 vs PC3 plot in all cell lines and in the PC1 vs PC3 plot in Met-4, SCC-13, and SCL-II. However the irradiation effects are not as pronounced as the cell line effects indicating a larger difference in the miRNA expression between cell lines than between treated and control cells. 
+
+To further investigate the indicated irradiation effect a second PCA plot has been drawn with an emphasis on treatment rather than cell line (Fig. 3).
+
+```{r}
+fviz_pca_biplot(
+  res.pca,
+  # Fill individuals by groups
+  geom.ind = "point",
+  pointshape = 21,
+  pointsize = 2.5,
+  fill.ind = dat_PCA$Irradiation,
+  col.ind = "black",
+  palette = "jco",
+  # Color variable by groups
+  col.var = "cos2",
+  alpha.var = 0.3,
+  axes = c(1,2),
+  addEllipses = T,
+  ellipse.level=0.8,
+  legend.title = list(fill = "Irradiation", color = "quality of representation"),
+  repel = TRUE        # Avoid label overplotting
+)+ 
+  scale_size_manual(values = c(2,4))
+```
+![**Fig. 3: PCA of the irradiated cell lines Met-1, Met-4, SCC-12, SCC-13, SCL-II.** Large circles represent the mean. Dim1 is equivalent to Principal Component 1 (PC1), etc. Ellipses are drawn around the treatment conditions. Arrows indicate correlation of miRNA with the respective Principal Component. miRNAs sharing a similar angle in the plot are positively correlated, miRNAs with orthogonal arrows are uncorrelated and miRNAs with an angle of 180° are negatively correlated. The variance explained is shown in parentheses. NOTE: The code above only shows the plot for PC1 vs PC2 (axes = c(1,2)). The image was generated by saving the 3 different images (A: PC1 vs PC2,B: PC1 vs PC3,C: PC2 vs PC3) and combining them in power point. n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/PCA_combined_irradiation.png)
+
+Fig. 3 shows a putative irradiation effect correlating with PC2 and PC3.Although the majority of variance in the data originates from cell line differences as indicated in Fig. 2, a smaller but still substantial portion of the variance, indeed, stems from the irradiation treatment. These two effects - *cell line effect* and *irradiation effect* - were further analyzed. 
+\
+\
+
+## 1.3 Investigation of the cell line effect
+
+To get a better understanding of the cell line effect a clustering analysis on differentially expressed miRNAs in control cells was performed.The statistical analysis underlying the characterization as *differentially expressed* is shown as follows: 
+
+
+### 1.3.1 Checking assumptions for statistical tests
+  
+
+```{r}
+# check for outliers 
+outl <- dat %>% 
+  group_by(cell_line,Irradiation, miRNA) %>%
+  identify_outliers(log_exp) 
+any(outl$is.extreme)
+```
+
+No extreme outliers were present in the analysis. Testing for normality or homogeneity of variances was not indicated in this study as the sample size was too small (n = 4) to detect deviations from said assumptions. Therefore,  a theoretical approach has been used to solve this problem:
+
+* As explained in section 1.1, expression data follows a log-normal distribution, thus log-transformed values were used for statistical analysis 
+* To deal with possible heterogeneity of variances, ANOVA with heteroscedasticity corrected covariance matrices (White 1980, Long and Ervin 2000) and post-hoc pairwise t-test with unequal variances were employed (white.adjust = TRUE in ANOVA and pool.sd = TRUE in pairwise t-test)
+
+### 1.3.2 Two-Way ANOVA
+
+
+#### Excursion: ANOVA
+
+
+
+#### Analysis 
+A two-way ANOVA was conducted at each level of the factor *miRNA* to determine the effects of cell line and irradiation on miRNA expression. Statistical significance was accepted for p < 0.05 after fdr-adjustment (Benjamini & Hochberg 1995) for two-way interactions and simple main effects. The results of the two-way ANOVA are shown exemplary below.
+
+```{r, message=FALSE}
+# 2-way ANOVA with miRNA as moderator variable
+two_way_ANOVA <- dat %>%
+  group_by(miRNA) %>%
+  # perform ANOVA with hccm correction (white.adjust = TRUE)
+  anova_test(log_exp ~ cell_line*Irradiation, white.adjust = T) %>%
+  adjust_pvalue(method = "fdr") 
+two_way_ANOVA
+```
+
+In 5 out of the 40 miRNAs there was an interaction effect present (miR-126-3p, miR-146a-5p, miR-30a-3p, miR-30b-5p, miR-7-5p). A cell line main effect was observed in 38 out of 40 miRNAs (each of the miRNAs showing an interaction effect also showed a sigfnifcant main effect). Only for miRNA let-7f-p and miR-30d-5p no cell line effect could be observed after adjusting for multiple testing. 
+
+
+```{r}
+# show interaction
+two_way_interaction <- two_way_ANOVA %>%
+  filter(Effect == "cell_line:Irradiation" & p.adj < 0.05) %>%
+  pull(miRNA)
+two_way_ANOVA %>% 
+  filter(miRNA %in% two_way_interaction & Effect == "cell_line:Irradiation") 
+
+# show main cell line effect
+two_way_cell<- two_way_ANOVA %>%
+  filter(Effect == "cell_line" & p.adj < 0.05) %>%
+  pull(miRNA)
+two_way_ANOVA %>% 
+  filter(miRNA %in% two_way_cell & Effect == "cell_line") 
+
+# no effect
+two_way_ANOVA %>% 
+  filter(!miRNA %in% two_way_cell & Effect == "cell_line")
+```
+
+### 1.3.3 One-Way ANOVA
+
+To further investigate the cell line effect a one-way ANOVA was conducted with miRNA and Irradiation as grouping variables. To eliminate the Irradiation effect and only compare *baseline* miRNA expression between cell lines the results were filtered for control cells only, resulting in 36 differentially expressed miRNAs.
+
+
+```{r, message=FALSE}
+# 1-way ANOVA 
+one_way_ANOVA <- dat %>%
+  group_by(miRNA, Irradiation) %>%
+  # perform ANOVA with hccm correction (white.adjust = TRUE)
+  anova_test(log_exp ~ cell_line, white.adjust = TRUE) %>%
+  adjust_pvalue(method = "fdr") %>% 
+  filter(Irradiation == "control" & p.adj < 0.05) %>%
+  select(-Irradiation)
+one_way_ANOVA
+```
+
+*NOTE: using the pooled variance from a 2-way ANOVA in the following 1-way ANOVA yields a higher statistical power but is more susceptible to violations from the homogeneity of variance assumptions. Analogously post-hoc tests with pooled variances (pool.sd = TRUE) are better in situations when the assumptions are met, at the cost of being less robust when assumptions not met.*
+
+### 1.3.4 Cluster analysis
+#### 1.3.4.1 Theoretical background
+
+##### *Hierarchical clustering*
+
+Hierarchical clustering is a method to group data based on similarity in data structure and is mostly associated with heatmaps and dendrograms for data presentation. For gene/miRNA expression analysis genes/miRNAs typically represent rows and different samples represent columns. To find genes/miRNA that are similarly expressed, distances between genes/miRNAs are measured e.g. using euclidean distance: 
+
+$$
+\begin{aligned}
+d = \sqrt{\sum_{i=1}^n (gene1_{i}-gene2_{i})^2}
+\end{aligned}
+$$
+
+With gene1~i~ being the expression of gene1 in sample i and gene2~i~ being the expression of gene2 in sample i.
+An example for 2 samples and 2 genes is shown below. Let gene expression of gene1 be 1.6 in sample1 and 0.5 in sample2 and expression of gene2 be -0.5 in sample1 and -1.9 in sample2:
+
+$$
+\begin{aligned}
+d & = \sqrt{\sum_{i=1}^n (gene1_{i}-gene2_{i})^2} \\
+  & = \sqrt{(gene1_{1} - gene2_{1})^2 + (gene1_{2} - gene2_{2})^2} \\
+  & = \sqrt{(1.6 - (-0.5))^2 + (0.5 - (-1.9))^2} \\
+  & = \sqrt{2.1^2 + 2.4^2} \\
+  & = 3.2
+\end{aligned}
+$$
+*Note: for 2 samples the euclidean distance between 2 genes/miRNAs is equal to the pythagorean theorem.*
+
+Other possible distance measures include: 
+ 
+ + pearson correlation (parametric)
+ + spearman correlation (non-parametric)
+ + kendall correlation (non-parametric)
+ + manhattan distance (instead of summing up squared distances and taking the sqaure root, absolute values of difference are used)
+ + canberra distance
+ + binary distance
+ + minkowski distance
+ + maximum distance
+
+In more complex designs, distances are calculated for each gene/miRNA pair and the pair with the smallest distance is merged into a cluster (cluster1). Subsequently distances are calculated again but with the previously generated cluster being treated as a new gene/miRNA entity. If the smallest distance is between 2 other genes/miRNas, they are merged into a new separate cluster, if the smallest distance is between some gene/miRNA and cluster1, this gene is clustered next to cluster1. This process is repeated until all genes/miRNas are part of a cluster. To visualize this process a dendrogram is drawn, showing different branches to indicate relationships. The length of the branches corresponds to the time when this cluster was formed, meaning the shorter the branches the closer the relationship between the genes/miRNAs. 
+
+There are different approaches to cluster similar samples together, the most prominent being, average linkage, single linkage and complete linkage. In average linkage the distance of single genes/miRNAs to the centroid of clusters is calculated and they are merged into the cluster with the least distance to the centroid. In single linkage the distance is calculated between genes/miRNAs and the closest point in each cluster. Analogously, in complete linkage, the distance is calculated between genes/miRNas and the furthest point in each cluster. 
+
+Finally, not only genes/miRNAs can be clustered but this process can also be applied to different samples to find related samples based on the expression pattern. 
+
+*Note: The choice of distance measures and clustering algorithms is completely arbitrary, so the best method is chosen by looking at the representation of the data for each process. However, there are studies indicating that distances between genes/miRNAs can preferably be calculated by correlation whereas distances between samples typically are calculated using euclidean distance. (Publications raussuchen)* \
+\
+\
+
+
+##### *K-means clustering*
+
+K-means is a different approach to cluster similar data but with a different mathematical approach and the need of supervision of a researcher, whereas hierarchical clustering typically is an unsupervised method. In k-means clustering a number k of desired clusters is specified previously to the analysis (methods to find the best k are described in a later paragraph). For an example with k=3 clusters, three random data points are chosen as the center of a cluster. Afterwards distances from each point to the three randomly chosen centers are calculated and the points are assigned to the closest cluster. In the following, the mean for each cluster is calculated and the distance from each point to the mean of each cluster is calculated. If necessary, points are reassigned and this process is repeated until the samples in the cluster do not change anymore. This explanation refers to one iteration of the k-means algorithm. The number of iterations can also be prespecified, and for each iteration three new random points are chosen as the starting points for the clusters. For each iteration the sum of variances within the clusters is calculated and summarized over all clusters. The iteration with the least sum of variances is chosen as the optimal clustering result. 
+
+To find the optimal value of k, different approaches can be used. Sometimes it is evident from a plot, a previous PCA or hierarchical cluster analysis or other exploratory data analyses how many clusters are optimal. In other cases different values for k can be used in a trial and error approach and the reduction of variance can be plotted against k. In this *elbow plot* there is a point after which the reduction of variance only changes slightly. This point generally corresponds to the optimal k. 
+\
+\
+
+#### 1.3.4.2 Analysis
+The differentially expressed miRNAs were used in a combined approach using supervised kmeans to cluster cell lines (columns) with k=3 as indicated by PCA and unsupervised hierachical clustering to cluster miRNAs (rows). Furthermore hierarchical clustering was also applied in the subclusters split by kmeans. The results were visualized in a Heatmap to reduce complexity and show the quantitative properties of each miRNA as an overview (Fig. 4). 
+
+
+```{r}
+# Heatmap  
+# transform data for Heatmap format
+dat_Heatmap <- dat %>% 
+  filter(Irradiation == "control" & miRNA %in% one_way_ANOVA$miRNA) %>%
+  select(-c(Irradiation, log_exp)) %>%
+  spread(miRNA, expression) %>%
+  mutate(cell_line = str_replace_all(cell_line, "_","-"))
+
+# scale data for Heatmap
+dat_scaled <- dat_Heatmap %>% 
+  column_to_rownames("ID") %>% 
+  select(-cell_line) %>%
+  scale() %>%
+  t()
+
+# set ID as rownames so colorbar works properly
+dat_colorbar <- dat_Heatmap %>% select(c(ID, cell_line)) %>% 
+  column_to_rownames("ID")
+
+# define colors for colorbar to identify cell lines
+colorbar <- HeatmapAnnotation(
+  df =dat_colorbar,
+  col = list(
+    cell_line = c(
+      "Met-1" = "#0073C2FF",
+      "Met-4" = "#EFC000FF",
+      "SCC-12"="#868686FF" ,
+      "SCC-13"="#CD534CFF",
+      "SCL-II"="#7AA6DCFF")
+    ),
+  annotation_legend_param = list(
+    cell_line = list(nrow=1)
+    )
+  )
+
+# define color for the Heatmap cells
+col_fun = colorRamp2(c(-1.8, 0, 1.8), c(c("#6D9EC1", "white", "#E46726")))
+
+# Draw Heatmap 
+Ht <- Heatmap(
+  dat_scaled,
+  col= col_fun,
+  top_annotation = colorbar,
+  row_split = 4,
+  column_title = c("A", "B", "C"),
+  border = T,
+  # split cell lines in 3 clusters according to PCA
+  column_km = 3, 
+  # repeat km split 100 times to get a stable cluster
+  column_km_repeats = 100, 
+  # define distance metric and clustering algorithm
+  clustering_method_row = "average", # average linkage
+  clustering_method_columns = "average",
+  clustering_distance_row = "pearson", 
+  clustering_distance_column = "euclidean",
+  # plot cosmetics 
+  rect_gp = gpar(col = "white",lty = 1, lwd = 1),
+  row_names_gp = gpar(fontsize = 10),
+  show_column_names = FALSE,
+  column_names_gp = gpar(fontsize = 10),
+  heatmap_legend_param = list(
+    title = "row Z-score",
+    at = seq(-2,2,by=1),
+    color_bar="continuous",
+    title_position ="topcenter",
+    legend_direction = "horizontal",
+    legend_width = unit(4, "cm")
+    ))
+
+# plot the final heatmap with annotation and legend
+draw(Ht, annotation_legend_side = "bottom", heatmap_legend_side = "bottom")
+```
+
+![**Fig. 4: Hierarchical clustering analysis of differentially expressed miRNAs between the five different cell lines.** K-means clustering was applied with k=3 splits as PCA indicated 3 distinct clusters (Met-1/Met-4, SCC-12/SCC-13 and SCL-II). These clusters are also present in the Heatmap displayed by the color code below the column dendrogram. Orange shows upregulation of miRNA expression, blue shows downregulation of miRNA expression. Clustering method: average linkage. Distance measure for miRNAs: pearson correlation. Distance measure for cell lines: euclidean distance. n = 4. )](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/cell_line_Heatmap.png)
+
+The combined cluster analysis showed a clear separation of miRNA expression depending on the cell line context (A: SCC-12/SCC-13,B: SCL-II,C: Met-1/Met-4).
+The miRNAs were clustered in 4 groups. Cluster 1 was upregulated in cell line cluster A compared to cluster B and C. Cluster 2 was upregulated in cell line cluster B compared to cluster A and C. Cluster 4 was upregulated in cell line cluster C compared to A and B. Cluster 3 showed an intermediate expression of miRNAs in Cluster B and C with the lowest expression values observed in Cluster A.
+
+Taken together these findings indicate distinct miRNA clusters representing a cell line specific epigenetic pattern and possibly reflecting differentiation, p53 status or other phenotypes associated with these patterns. To investigate the biological function of the miRNAs in each cluster gene set enrichment analysis was conducted to find enriched pathways targeted by these miRNAs (section 1.3.5). 
+
+
+### 1.3.5 Gene set enrichment analysis (GSEA) with RBiomirGS
+
+To identify the summarized function of the differentially expressed miRNAs between cell lines, miRNA clusters obtained in 1.3.4.2 were further investigated. Three distinct clusters were selected - namely cluster 1A (representing miRNAs overexpressed in cell cluster 1 containing SCC12 and SCC13), cluster 2B (miRNAs overexpressed in cell line cluster 2 containing SCL-II) and cluster 4C (miRNAs overexpressed in cell line cluster 4 containg Met-1 and Met-4) - and data was extracted from the heatmap object:
+
+```{r, message = FALSE}
+# extract clusters out of Heatmap object
+Ht_clusters <- extract_clusters(dat_scaled, Ht, sampleName = "ID", sampleClust = "cellCluster", 
+                                geneName = "miRNA", geneClust = "miRCluster")
+
+# construct new data frame containing cluster information
+dat_clusters <- left_join(filter(dat, Irradiation == "control"), Ht_clusters$cellCluster) %>%
+  left_join(Ht_clusters$miRCluster) %>% select(-c(Irradiation, cell_line)) %>%
+  mutate(miRNA = str_replace_all(miRNA,"let", "hsa-let"),
+         miRNA = str_replace_all(miRNA,"mir", "hsa-miR"))
+```
+
+Afterwards fold-changes and pvalues were calculated for upregulated miRNAs in each cell line cluster vs the remaining 2 (e.g. miRNAs in cluster 1A vs miRNAs in cluster 1B + 1C).
+
+```{r, message = FALSE}
+# create list for each miRCluster
+ls_miRCluster <- split(dat_clusters, f = dat_clusters$miRCluster)         
+
+# compare Cluster 1A to 1B and 1C, drop attributes (important for the pathway analysis as a list threw an error) and generate a data.frame
+cl_1A <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 1, "A"), FUN=drop_attr))
+# compare Cluster2B to 2A and 2C, drop attributes and generate a data.frame
+cl_2B <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 2, "B"), FUN=drop_attr))
+# compare Cluster 4C to 4A and 4B, drop attributes and generate a data.frame
+cl_4C <- as.data.frame(lapply(summary_clusters(ls_miRCluster, 4, "C"), FUN=drop_attr))
+```
+
+
+These dataframes containing the miRNA name, the fold-change and pvalue of the specified cell line cluster vs the other two for each miRNA were then used for GSEA with the R package *RBiomirGS*  providing a comprehensive tool for quantitative investigation of miRNA-mRNA interactions (Zhang 2018). Sources for gene sets used in this analyses were KEGG (Kyoto Encyclopedia of Genes and Genomes) and GO:BP (Gene Ontology: Biological Process) obtained from http://www.gsea-msigdb.org/gsea/msigdb/index.jsp as *entrez IDs* stored in .gmt files. The metric for the GSEA in this package is logistic regression with a negative model coefficient related to gene sets inhibited by the miRNA set under investigation and a positive model coefficient associated with gene sets activated by the miRNA set. 
+
+Bioinformatic approaches are prone to false-positive results (Godard 2015) due to annotation and research bias concerning miRNAs and pathways: On the one hand certain miRNAs are researched more extensively leading to a higher number of identified targets, on the other hand there are certain pathways - mostly associated with cancer - which are highly related and therefore enriched in many studies even though different approaches were used in those studies. Thus, the need for negative controls is crucial to eliminate this bias. 
+
+In this study three clusters should be examined with a total of 30 miRNAs (cluster 1A: 10 miRNAs, cluster 2B: 6 miRNAs, cluster 4C: 14 miRNAs) resulting in an average number of 10 miRNAs in each cluster. Therefore 10 random mature miRNAs were chosen out of a total of 2635 miRNAs obtained from miRBase (www.mirbase.org) as controls. These miRNAs were assigned random FC and pvalue pairs out of the original analysis as this is required for the performed quantitative analysis. This process was repeated 50 times to ensure a sufficiently large number of control miRNA sets. As this iterative process is time consuming, once the control data was generated it was stored in an .rds object to be accessed later. To assess bias, the number of times a pathway was enriched in these 50 control simulations was stored and divided by 50 to obtain an enrichment percentage. Pathways that were enriched in more than 10 % of controls were then omitted from the analysis to reduce bias. 
+\
+\
+
+
+#### 1.3.5.1 KEGG pathway analysis 
+
+Calculation of controls for KEGG analysis: 
+
+```{r}
+# load data with mature miRNAs from miRBase
+dat_miRBase <- read.csv("Data/Pathway Analysis/mature_miRNA.csv", header = FALSE) %>%
+  mutate(miRNA = str_extract(V1, "(hsa-miR|hsa-let)-\\d{1,5}([:alpha:]+-\\dp|\\s|-\\dp|[:alpha:]+)")) %>% 
+  na.omit()
+
+# data frame containing FC and pvalue of the original data used for random sampling in controls
+ctrl_stats <- rbind(cl_1A, cl_2B, cl_4C) %>% 
+  select(-miRNA) 
+
+# calculate GS enrichment for 50 random controls (containing 10 miRNAs each)
+n <- 50
+# ctrl_list_KEGG <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10,
+#                          gs_file = "c2.cp.kegg.v7.2.entrez.gmt")
+
+# to facilitate downstream analysis the ctrl_list is saved 
+# saveRDS(ctrl_list, file = "ctrl_list.rds")
+ctrl_list_KEGG <- readRDS(file = "Data/Pathway Analysis/ctrl_list_KEGG.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_KEGG.rds
+
+# calculate bias and mean targeted genes
+res_ctrl_KEGG <- pathway_ctrl_summary(ctrl_list_KEGG, n=n)
+```
+
+\
+\
+
+##### Cluster 1A 
+
+Comparison of miRNAs upregulcl_1A_predicted_mirna_mrna_iwls_KEGGated in SCC-12/SCC-13 vs SCL-II, Met-1 and Met-4.
+
+```{r, eval = FALSE}
+# calculation of GSEA for miRNAs upregulated in cluster 1A 
+
+# collect mRNA targets of the miRNAs upregulated in cluster 1A
+rbiomirgs_mrnascan_custom(objTitle = "cl_1A_predicted", mir = cl_1A$miRNA, sp = "hsa", 
+  queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
+
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_1A_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_1A, 
+  var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_1A_predicted_mrna_entrez_list, 
+  mrna_Weight = NULL, gs_file = "Data/Pathway Analysis/c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+  p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
+
+# total number of significantly enriched pathways
+sum(cl_1A_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)
+
+# remove enriched pathways with a random enrichment of more than 10 %
+bias_KEGG <- names(res_ctrl_KEGG$bias[res_ctrl_KEGG$bias > 0.1])
+cl_1A_KEGG_plot <- cl_1A_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
+```
+
+
+In total 13 (12 after bias correction) KEGG pathways were significantly enriched in the gene set targeted by the 10 miRNAs in cluster 1A. One pathway (KEGG_Glioma) was excluded from the downstream analysis as it was enriched in more than 10 % of control simulations (also for the analysis in cluster 2B and cluster 4C).  
+
+```{r, eval = FALSE}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_1A_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
+  sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = F,gs.name = F,
+  n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_1A_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 15, plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 5: KEGG pathway analysis of gene sets targeted by miRNAs in cluster 1A.** Volcano plot depicts the significance and directionality distribution for the KEGG pathway tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched KEGG pathways and the bar graph in the volcano plot shows the overall distribution of model coefficient. The 12 significantly enriched pathways are labeled. Bar graph on the left shows these 12 enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_1A.png)
+
+Interpretation??? 
+
+\
+\
+
+##### Cluster 2B 
+Comparison of miRNAs upregulated in  SCL-II vs. SCC-12, SCC-13 Met-1 and Met-4.
+
+```{r, eval = FALSE}
+# collect mRNA targets of the miRNAs upregulated in cluster 2B
+rbiomirgs_mrnascan_custom(objTitle = "cl_2B_predicted", mir = cl_2B$miRNA, sp = "hsa", 
+                   queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
+
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_2B_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_2B, 
+                   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_2B_predicted_mrna_entrez_list, 
+                   mrna_Weight = NULL, gs_file = "Data/Pathway Analysis/c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+                   p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
+
+# total number of significantly enriched pathways
+sum(cl_2B_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)
+
+# remove enriched pathways with a random enrichment of more than 10 %
+cl_2B_KEGG_plot <- cl_2B_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
+```
+
+In total 34 (33 after bias correction) KEGG pathways were significantly enriched in cluster 2B. 
+
+```{r, eval = FALSE}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_2B_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
+                  sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_2B_KEGG_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_2B_KEGG_plot,signif_only = T,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = "all", plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 6: KEGG pathway analysis of gene sets targeted by miRNAs in cluster 2B.** Volcano plot depicts the significance and directionality distribution for the KEGG pathway tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched KEGG pathways and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 15 significantly enriched pathways are labeled. Bar graph on the left shows all 33 significntly enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_2B.png)
+
+Interpretation??? 
+
+\
+\
+
+#### Cluster 4C
+Comparison of miRNAs upregulated in  Met-1 and Met-4 vs. SCC-12, SCC-13 and SCL-II.
+
+```{r, eval = FALSE}
+# collect mRNA targets of the miRNAs upregulated in cluster 4C
+rbiomirgs_mrnascan_custom(objTitle = "cl_4C_predicted", mir = cl_4C$miRNA, sp = "hsa", 
+                   queryType = "predicted",parallelComputing = TRUE,clusterType = "PSOCK")
+
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_4C_predicted_mirna_mrna_iwls_KEGG",mirna_DE = cl_4C, 
+                   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_4C_predicted_mrna_entrez_list, 
+                   mrna_Weight = NULL, gs_file = "Data/Pathway Analysis/c2.cp.kegg.v7.2.entrez.gmt", optim_method = "IWLS", 
+                   p.adj = "fdr", parallelComputing = FALSE, clusterType = "PSOCK")
+
+# total number of significantly enriched pathways
+sum(cl_4C_predicted_mirna_mrna_iwls_KEGG_GS$adj.p.val < 0.05)
+
+# remove enriched pathways with a random enrichment of more than 10 %
+cl_4C_KEGG_plot <- cl_4C_predicted_mirna_mrna_iwls_KEGG_GS %>% filter(!GS %in% bias_KEGG)
+```
+
+In total 32 (31 after bias correction) KEGG pathways were significantly enriched in cluster 4C. 
+
+```{r, eval = FALSE}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_4C_KEGG_plot,topgsLabel = TRUE,n = 15,gsLabelSize = 2,
+                  sigColour = "red",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_4C_KEGG_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_4C_KEGG_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = "all", plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 7: KEGG pathway analysis of gene sets targeted by miRNAs in cluster 4C.** Volcano plot depicts the significance and directionality distribution for the KEGG pathway tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched KEGG pathways and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 15 significantly enriched pathways are labeled. Bar graph on the left shows all 31 significntly enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/KEGG_cl_4C.png)
+
+Interpretation??? 
+
+\
+\
+
+#### 1.3.5.2 GO:BP analysis
+
+Calculation of controls for GO:BP analysis: 
+```{r}
+# calculate GS enrichment for 50 random controls 
+n <- 50
+# ctrl_list_GO_BP <- GS_controls(data= ctrl_stats,rep = n, miRdata = dat_miRBase$miRNA, sample_n = 10, 
+#                          gs_file = "c5.go.bp.v7.2.entrez.xls")
+
+# to facilitate downstream analysis the ctrl_list is saved 
+# saveRDS(ctrl_list_GO_BP, file = "ctrl_list_GO_BP.rds")
+ctrl_list_GO_BP<- readRDS(file = "Data/Pathway Analysis/ctrl_list_GO_BP.rds") # file is available at https://github.com/MBender1992/PhD/blob/Marc/Data/Pathway%20Analysis/ctrl_list_GO_BP.rds
+
+# calculate bias and mean targeted genes
+res_ctrl_GO_BP <-pathway_ctrl_summary(ctrl_list_GO_BP, n=n)
+```
+
+\
+\
+
+#### Cluster 1A 
+
+```{r, eval = FALSE}
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_1A_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_1A, 
+  var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_1A_predicted_mrna_entrez_list, 
+  mrna_Weight = NULL,gs_file = "Data/Pathway Analysis/c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
+  p.adj = "fdr",parallelComputing = FALSE,clusterType = "PSOCK")
+
+# number of enriched GO terms
+sum(cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS$adj.p.val < 0.05)
+
+# remove enriched pathways with a random enrichment of more than 10 % and only keep pathways that converged
+bias_GO_BP <- names(res_ctrl_GO_BP$bias[res_ctrl_GO_BP$bias > 0.1])
+cl_1A_Go_BP_plot <- cl_1A_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
+```
+
+In total 501 (442 after bias correction) GO terms (biological process) were significantly enriched. 59 Go terms were randomly enriched in more than 10 % of control simulations and omitted from the analysis (also for cluster 2B and 4C).
+
+```{r, eval = FALSE}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_1A_GO_BP_plot,topgsLabel = TRUE,n = 5,gsLabelSize = 1.8,
+                  sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_1A_GO_BP_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_1A_GO_BP_plot,signif_only = 15,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 50, plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 8: GO:BP analysis of gene sets targeted by miRNAs in cluster 1A.** Volcano plot depicts the significance and directionality distribution for the GO terms  tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched GO terms and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 5 significantly enriched pathways are labeled. Bar graph on the left shows the top 50 enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/GO_BP_cl_1A.png)
+
+\
+\
+
+#### Cluster 2B
+```{r, eval = FALSE}
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_2B_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_2B, 
+                   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_2B_predicted_mrna_entrez_list, 
+                   mrna_Weight = NULL,gs_file = "Data/Pathway Analysis/c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
+                   p.adj = "fdr",parallelComputing = FALSE,clusterType = "PSOCK")
+
+# number of enriched GO terms
+sum(cl_2B_predicted_mirna_mrna_iwls_GO_BP_GS$adj.p.val < 0.05)
+
+# remove enriched pathways with a random enrichment of more than 10 % and only keep pathways that converged
+cl_2B_Go_BP_plot <- cl_2B_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
+
+```
+
+In total 525 (466 after bias correction) GO terms were enriched in cluster 2B. 
+
+```{r, eval = FALSE}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_2B_GO_BP_plot,topgsLabel = TRUE,n = 10,gsLabelSize = 1.8,
+                  sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_2B_GO_BP_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_2B_GO_BP_plot,signif_only = T,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 50, plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 9: GO:BP analysis of gene sets targeted by miRNAs in cluster 2B.** Volcano plot depicts the significance and directionality distribution for the GO terms  tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched GO terms and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 10 significantly enriched pathways are labeled. Bar graph on the left shows the top 50 enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/GO_BP_cl_2B.png)
+
+
+\
+\
+
+#### Cluster 4C
+
+```{r, eval = FALSE}
+# calculate GS by logistic regression
+rbiomirgs_logistic(objTitle = "cl_4C_predicted_mirna_mrna_iwls_GO_BP",mirna_DE = cl_4C, 
+                   var_mirnaName = "miRNA",var_mirnaFC = "FC",var_mirnaP = "pvalue", mrnalist = cl_4C_predicted_mrna_entrez_list, 
+                   mrna_Weight = NULL,gs_file = "Data/Pathway Analysis/c5.go.bp.v7.2.entrez.xls",optim_method = "IWLS", 
+                   p.adj = "fdr",parallelComputing = FALSE,clusterType = "PSOCK")
+
+# number of enriched GO terms
+sum(cl_4C_predicted_mirna_mrna_iwls_GO_BP_GS$adj.p.val < 0.05)
+
+# remove enriched pathways with a random enrichment of more than 10 % and only keep pathways that converged
+cl_4C_Go_BP_plot <- cl_4C_predicted_mirna_mrna_iwls_GO_BP_GS %>% filter(!GS %in% bias_GO_BP & converged == "Y")# number of significantly enriched pathways
+```
+
+In total 766 (707 after bias correction) GO terms were enriched in cluster 4C. 
+
+```{r, eval = FALSE}
+#plot results (volcano plot)
+rbiomirgs_volcano(gsadfm = cl_4C_GO_BP_plot,topgsLabel = TRUE,n = 10,gsLabelSize = 1.8,
+                  sigColour = "#CD534CFF",plotWidth = 250,plotHeight = 220,xLabel = "model coefficient")
+
+# plot distribution of enriched gene sets
+rbiomirgs_bar(gsadfm = cl_4C_GO_BP_plot,signif_only = F,gs.name = F,
+              n = "all",xLabel = "gene set", yLabel = "model coefficient", plotWidth = 250, plotHeight = 220)
+
+# plot top enriched gene sets
+rbiomirgs_bar(gsadfm = cl_4C_GO_BP_plot,signif_only = T,gs.name = T,xLabel = "model coefficient",
+              yTxtSize = 7, n = 50, plotWidth = 250, plotHeight = 220)
+```
+![**Fig. 10: GO:BP analysis of gene sets targeted by miRNAs in cluster 4C.** Volcano plot depicts the significance and directionality distribution for the GO terms  tested (−log p value vs. model coefficient). Red (upper quadrants) represent the significantly enriched GO terms and the bar graph in the volcano plot shows the overall distribution of model coefficient. The top 10 significantly enriched pathways are labeled. Bar graph on the left shows the top 50 enriched gene sets in a quantitative representation. The bars represent model coefficient ± standard error. Only the gene sets with an FDR adjusted p < 0.05 are plotted. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/GO_BP_cl_4C.png)
+
+\
+\
+
+## 1.4 Investigation of the irradiation effect
+
+To examine the effect of the chronic Irradiation and identify in which cell lines there was an irradiation effect, pairwise comparisons between treated and control samples were conducted for each cell line using t-tests. To balance Type I and Type II error rate the results were only adjusted for multiple testing at the ANOVA (section 1.3.2) level using fdr-correction. Subsequent t-test were not adjusted for multiple testing as suggested by Feise (2002) and Rothman (1990). Confirmation of the results was rather achieved by a follow-up qPCR (Fig. 7). 
+
+Differential expression was accepted when fdr(ANOVA) < 0.05, p(t-test) < 0.05 and a fold-change > 1.5 between irradiated cells and controls was observed. Analysis of miRNAs was split into two parts: examination of the interaction effect and the irradiation main effect. 
+
+
+### 1.4.1 Interaction effect of cell line and irradiation
+
+As mentioned above 5 miRNAs showed a significant interaction effect in the two-way ANOVA (section 1.3.2): 
+
+
+```{r}
+# miRNAs with a significant interaction effect
+two_way_ANOVA %>% 
+  filter(miRNA %in% two_way_interaction & Effect == "cell_line:Irradiation") 
+```
+
+Data was summarized using geometric mean and geometric sd to show data in the original scale but summarized with respect to the log-normal distribution of the miRNA expression values. Fold changes were calculated by dividing the geometric mean of the irradiated samples by the geometric mean of the control cells for each miRNA and cell line, respectively. 
+For easier computation and giving similar weight to downregulation as to upregulation, fold changes were log2 transformed (log2FC).The analogous threshold to FC > 1.5 is  |log2FC| > 0.585. 
+
+```{r, message = FALSE}
+# summarize data with geometric mean and geometric sd for each miRNA in each cell line for irradiated cells and controls
+dat_summary <- dat %>% 
+  mutate(expression = expression + 1) %>%
+  group_by(cell_line, Irradiation,miRNA) %>%
+  summarize(geomean = geoMean(expression, na.rm =T), geosd = geoSD(expression))
+# calculate fold changes by dividing the geomean expression value of irradiated cells by geomean expression value of 
+# control cells for each each miRNA in each cell line
+folds <-  dat_summary %>% 
+  group_by(cell_line,  miRNA) %>% 
+  summarize(FC = geomean[Irradiation == "KAUVIR"]/geomean[Irradiation == "control"]) %>% 
+  mutate(log2FC = log2(FC)) %>%
+  setNames(c("cell_line", "miRNA","FC", "log2FC"))
+```
+
+Combining the criterea for different expression as described in section 1.4, four miRNAs remained (Fig. 11).
+
+```{r, message = FALSE}
+# t-test for the interaction effect
+pwc_interaction <- dat %>%
+  group_by(miRNA,cell_line) %>%
+# set pool.sd = F to use different variances for calculations
+  pairwise_t_test(log_exp~Irradiation, pool.sd = F) %>%
+#filter only miRNAs with p < 0.05 and a significant interaction term in two way ANOVA
+  filter(p < 0.05 & miRNA %in% two_way_interaction)  
+
+
+#calculate differential expression for interaction
+diff_expr_interaction <- pwc_interaction %>%
+  inner_join(folds) %>%
+  select(miRNA, cell_line, p, log2FC) %>% 
+  filter(abs(log2FC) > log2(1.5))
+diff_expr_interaction
+```
+
+```{r, eval = FALSE}
+# function expands facet limits individually to plot each facet with an individual scale
+facet_limits <-function(data, y, group){
+  
+  dat <- data.table(data)
+  
+  dat[,y_min := eval(parse(text = y))*0.5, by = eval(parse(text = group))]
+  dat[,y_max:= eval(parse(text = y))*1.25, by = eval(parse(text = group))]
+  
+  dat <- as_tibble(dat)
+  return(dat)
+}
+
+# apply function facet_limits to generate individual facet limits for the plot
+dat_plot <- facet_limits(dat_summary, "geomean + geosd", "miRNA") %>% 
+  mutate(cell_line = str_replace_all(cell_line, "_","-"))
+
+# define limits of errorbar to only show upper errorbar
+limits <- aes(ymax = ifelse(geomean>0,geomean + geosd,geomean/2),
+              ymin = ifelse(geomean<0,geomean - geosd,geomean/2))
+
+
+# generating Plot
+dat_plot %>% 
+  # only show differentially expressed miRNAs with a significant interaction term in two-way ANOVA
+  filter(miRNA %in% diff_expr_interaction$miRNA) %>%
+  ggplot(
+    aes(
+      x=cell_line,
+      y=geomean,
+      fill=Irradiation
+      )
+    ) + 
+  # add errorbars with the defined limits
+  geom_errorbar(
+    limits,
+    width=.2,
+    position=position_dodge(0.5)
+    ) +
+  # add barplots to show geometric mean
+  geom_bar(
+    stat="identity",
+    color="black",
+    position=position_dodge(),
+    width= 0.5
+    ) +
+  # split plot into separate plot for each miRNA and change theme
+  facet_wrap(~miRNA,scales="free")+ 
+  theme_PhD(axis.text.size = 8) +
+  theme(
+    axis.title.x = element_blank(),
+    strip.background = element_blank(),
+    legend.key.size = (unit(0.7,"line")),
+    legend.position = "bottom"
+  ) +
+  # extend facets by adding blank datapoints as defined with the function facet limits
+  geom_blank(aes(y = y_min)) +
+  geom_blank(aes(y = y_max)) + 
+  # change colors of the plot elements and add y axis title
+  scale_fill_manual(values = grey.colors(5,start=1,end=0.2))  +
+  scale_y_continuous(expand = c(0, 0)) +
+  ylab("miRNA expression (a.u.)")
+```
+
+
+![**Fig. 11: miRNA expression of the differentially expressed miRNAs with an interaction effect of cell line and irradiation in the two-way ANOVA (section 1.3.2).** KAUVIR: cells irradiated with the irradiation device for the KAUVIR project. Results of interaction term in two-way ANOVA after fdr-adjustment are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;&#42;: p < 0.001, &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_interaction.png)
+
+NOTE: ** Apply bonferroni-correction for the 5 tests within each miRNA? **
+
+All 4 miRNAs were upregulated in at least one cell line (miR-126-3p in SCC-13, miR-146a-5p in SCL-II, miR-30a-3p in SCC-12 and SCL-II and miR-7-5p in SCL-II). Although not significantly changed the same trend of upregulation can be observed for other cell lines as well, with an exception of miR-126-3p in Met-1 and SCC-12, miR-146a-5p in SCC-12 and SCC-13 and miR-7-5p in Met-1 and SCC-13 (which even shows a downregulation after irradiation, however not significantly). 
+\
+\
+\
+
+
+#### Excursion: t-test
+
+A t-test is a hypothesis test used to compare means of two samples a and b. The t-value for samples with equal variances (Student's t-test) is calculated as:
+
+$$
+\begin{aligned}
+t = \frac{m_a-m_b}{\sqrt{\frac{S^2}{n_a} + \frac{S^2}{n_b}}}
+\end{aligned}
+$$
+
+with m~a~ the mean of sample a, m~b~ the mean of sample b, n~a~ the sample size of a, n~b~ the sample size of b and S^2^ being an estimator of the pooled variance: 
+
+
+$$
+\begin{aligned}
+S^2 = \frac{\sum(x-m_a)^2 + \sum(x-m_b)^2}{n_a + n_b -2}
+\end{aligned}
+$$
+The degrees of freedom used to compare the calculated t-value to the critical t-value in a t-table are:
+
+$$
+\begin{aligned}
+df = n_{a} + n_{b} -2
+\end{aligned}
+$$
+
+For unequal variances (Welch's t-test) the following formulas can be used:
+
+
+$$
+\begin{aligned}
+t = \frac{m_a-m_b}{\sqrt{\frac{S_a^2}{n_a} + \frac{S_b^2}{n_b}}}
+\end{aligned}
+$$
+with m~a~ the mean of sample a, m~b~ the mean of sample b, n~a~ the sample size of a, n~b~ the sample size of b, S~a~ being the standard deviation of a and S~b~ being the standard deviation of b. 
+
+The degrees of freedom in this case are calculated as:
+
+$$
+\begin{aligned}
+df = \frac{(\frac{S_a^2}{n_a}  +\frac{S_b^2}{n_b})}{\frac{S_a^4}{n_a^2(n_a -1)} + \frac{S_b^4}{n_b^2(n_b -1)}}
+\end{aligned}
+$$
+
+
+### 1.4.2 Main effect Irradiation
+
+Subsequently the irradiation main effect has been investigated to analyze miRNAs with a common UV-response in the different cell types (Fig. 12). 
+
+```{r, message = FALSE}
+# filter miRNAs with a significant irradiation term but without significant interaction term
+two_way_irradiation <- two_way_ANOVA %>%
+  filter(Effect == "Irradiation" & p.adj < 0.05 & !miRNA %in% two_way_interaction) %>%
+  pull(miRNA)
+
+# t-test for the irradiation effect
+pwc_irradiation <- dat%>%
+  group_by(miRNA,cell_line) %>%
+  pairwise_t_test(log_exp~Irradiation, pool.sd = F) %>% 
+  filter(p < 0.05 & miRNA %in% two_way_irradiation) 
+
+#calculate differential expression for Irradiation
+diff_expr_irradiation <- pwc_irradiation %>%
+  inner_join(folds) %>%
+  select(miRNA, cell_line, p, log2FC) %>% 
+  filter(abs(log2FC) > log2(1.5))
+diff_expr_irradiation
+```
+
+
+```{r, eval = FALSE}
+dat_plot %>% 
+  # only show differentially expressed miRNAs with a significant main effect "irradiation" term in two-way ANOVA but without significant interaction
+  filter(miRNA %in% diff_expr_irradiation$miRNA) %>%
+  ggplot(
+    aes(
+      x=cell_line,
+      y=geomean,
+      fill=Irradiation
+    )
+  ) + 
+  # add errorbars with the defined limits
+  geom_errorbar(
+    limits,
+    width=.2,
+    position=position_dodge(0.5)
+  ) +
+  # add barplots to show geometric mean
+  geom_bar(
+    stat="identity",
+    color="black",
+    position=position_dodge(),
+    width= 0.5
+  ) +
+  # split plot into separate plot for each miRNA and change theme
+  facet_wrap(~miRNA,scales="free")+ 
+  theme_PhD(axis.text.size = 8) +
+  theme(
+    axis.title.x = element_blank(),
+    strip.background = element_blank(),
+    legend.key.size = (unit(0.7,"line")),
+    legend.position = "bottom"
+  ) +
+  # extend facets by adding blank datapoints as defined with the function facet limits
+  geom_blank(aes(y = y_min)) +
+  geom_blank(aes(y = y_max)) + 
+  # change colors of the plot elements and add y axis title
+  scale_fill_manual(values = grey.colors(5,start=1,end=0.2))  +
+  scale_y_continuous(expand = c(0, 0)) +
+  ylab("miRNA expression (a.u.)")
+```
+
+![**Fig. 12: miRNA expression of the differentially expressed miRNAs with an irradiation main effect in the two-way ANOVA but without significant interaction term (section 1.3.2).** KAUVIR: cells irradiated with the irradiation device for the KAUVIR project. Results of irradiation term in two-way ANOVA after fdr-adjustment are shown above the plots. Student's t-test was used for group comparisons. &#42;&#42;: p < 0.01, &#42;: p < 0.05. geomean ± geosd.  n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_irradiation.png)
+
+Significant upregulation could be detected for miR-135b-5p in SCC-13, miR-183-5p in SCC-13, miR-200a-3p in SCC-12, miR-30d-5p in SCC-13 and miR-424-5p in SCC-13. The miRNA expression shows a similar trend in the other cell lines as well with an exception of miR-135b-5p in Met-1 and SCL-II, miR-200a-3p in SCC-13 and miR-424-5p in Met-1. miR-205-5p is the only miRNA exhibiting a downregulation in all cell lines, with a significant downregulation in SCL-II. Furthermore, miR-205-5p shows the most significant general irradiation effect with p = 0.000253 in the two-way ANOVA. In summary UV irradiation seems to induce miRNA expression more often than inhibting miRNA expression with miR-205-5p being the only significantly downregulated miRNA out of totally 10 differentially expressed miRNAs between treated and control samples (results from section 1.4.1 and 1.4.2 combined). 
+
+Intriguingly, significant irradiation effects were only present in the three cell lines SCC-12, SCC-13 and SCL-II. This effect has been further investigated in section 1.5. 
+
+### 1.4.3 qPCR Validation
+
+To validate the findings of section 1.4.1 and section 1.4.2 qPCR was performed. For the analysis four biological replicates – each measured twice to reduce technical variability – were used. Values of technical replicates were summarized by arithmetic mean. sno44 (Small nucleolar RNA SNORD44), sno48 (Small nucleolar RNA SNORD48) and miR-16-5p were used as house-keeping genes for normalisation as previously described (Vandesompele 2002). In contrast to Livak and Schmittgen  ΔCt- and ΔΔCt-values were calculated as:
+
+
+$$
+\begin{aligned}
+ ΔCt &= Ct_{ref} - Ct_{goi}\\
+ ΔΔCt &= ΔCt_{ctrl} - ΔCt_{trt}
+\end{aligned}
+$$
+
+ 
+with Ct~ref~ representing the Ct value of the reference gene, Ct~goi~ representing the Ct value of the gene of interest, ΔCt~ctrl~ representing the ΔCt-value of the control samples and ΔCt~trt~ representing the ΔCt-value of the irradiated samples. This way positive/negative ΔCt-values directly correspond to a higher/lower relative expression and positive/negative ΔΔCt-values directly correspond to a higher/lower fold-change without the need of taking inverse values. 
+
+
+```{r, message = FALSE}
+# save url
+url_file_val <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/PhD_MB_qPCR_validation_Fireplex_20201015.csv" 
+
+# load data
+dat_qPCR <- read_csv(url(url_file_val)) %>% 
+  rename(Name = Probenname) %>%
+  # extract cell line out of ID string
+  mutate(
+    cell_line = str_replace_all(.$Name,"^\\d+_","") %>%
+      str_replace_all("(_|\\s+)([:alpha:]+|\\d+|)\\d*[:alpha:]*","")
+    ) %>%
+  # extract treatment out of ID string
+  mutate(
+    treatment = str_replace_all(.$Name,"^\\d+_[:alpha:]{3}-([:alpha:]{2}|\\d+)(_|\\s+)","") %>%
+      str_replace_all("(\\d*$|_([:alpha:]+|\\d+)\\d*[:alpha:]*)","") %>%
+      str_replace_all("K0", "con"),
+    treatment = tolower(treatment)
+    ) %>% 
+  # set everything to lower case letters for uniformity with the previous dataset
+  mutate(gene_name = tolower(gene_name))
+
+# load miR30d data (calculated separately as measured with different cycler and normalized with different HK genes)
+url_miR30 <- "https://raw.githubusercontent.com/MBender1992/PhD/Marc/Data/miR-30d.rds" 
+dat_miR30d <- readRDS(url(url_miR30))%>% 
+  mutate(gene_name = tolower(gene_name))
+
+dat_qPCR
+```
+
+
+```{r, message = FALSE}
+# calculate geoMean of HK genes for each sample
+dat_HK <- dat_qPCR %>% 
+  group_by(Name, cell_line) %>%
+  filter(gene_type == "HK") %>%
+  mutate(geomean_HK = geoMean(mean_ct, na.rm=T)) %>%
+  distinct(geomean_HK)
+
+# calculate dCT values
+dat_dCT <- inner_join(dat_qPCR, dat_HK) %>%
+  ungroup() %>%
+  filter(gene_type != "HK") %>%
+  select(-gene_type) %>%
+  mutate(dCT = geomean_HK - mean_ct)
+
+## calculate ddCT
+ddCT <- dat_dCT %>% 
+  group_by(gene_name,cell_line) %>% 
+  filter(treatment == "con") %>%
+  summarize(ctrl_dCT = mean(dCT, na.rm = T)) %>%
+  inner_join(dat_dCT %>% 
+  filter(treatment != "con")) %>%
+  mutate(ddCT = dCT - ctrl_dCT) %>%
+  ungroup() %>%
+  select(-c(Messung_1, Messung_2)) %>%
+  # combine with previous results of miR-30d
+  add_row(dat_miR30d) %>% 
+  # rename column to "miRNA" for subsequent analysis
+  rename(miRNA = gene_name) 
+```
+
+ΔΔCt-values were tested for significant differences from 0 with a one-sample t-test vs. 0 and compared to the Fireplex results (Fig. 11 & Fig. 12).
+
+```{r}
+# one-sided t-test vs null
+ddCT %>% group_by(cell_line,miRNA) %>% 
+  t_test(ddCT~ 1, mu = 0) %>% 
+  filter(p <= 0.05) %>% 
+  arrange(miRNA)
+```
+
+```{r, eval = FALSE}
+# extract fold changes for each miRNA and cell line from Fireplex analysis
+logFC_fireplex <- folds %>%
+  filter(miRNA %in% c(ddCT$miRNA, "mir-30d-5p")) %>%
+  select(-FC) %>%
+  mutate(cell_line = str_replace_all(cell_line, "_","-")) %>%
+  setNames(c("cell_line","miRNA", "logFC_Fireplex")) 
+
+# join results from qPCR and Fireplex analysis
+dat_plot <- ddCT %>%
+  left_join(logFC_fireplex) %>%
+  filter(!is.na(ddCT)) %>%
+  mutate(miRNA = factor(miRNA, levels = mixedsort(unique(.$miRNA), decreasing = T)))
+
+# define color sequence for the plot
+cols <- c("#E2E2E2", "#DCDCDC" ,"#D1D1D1", "#C2C2C2", "#B1B1B1", "#9E9E9E", "#8A8A8A" ,"#747474" ,"#5E5E5E" ,"#474747")
+
+# plot errorbars
+dat_plot %>% 
+  ggplot(aes(cell_line,ddCT,fill = cell_line)) +
+  stat_boxplot(
+    geom ='errorbar',position = position_dodge(0.48),
+    size=0.5,
+    width = 0.2
+  ) +
+  # add boxplot on top the errorbars
+  geom_boxplot(
+    color = "black", position = position_dodge(0.48), 
+    mapping = aes(x = cell_line,y =ddCT),
+    width=0.4
+  ) +
+  # plot points showing the mean of the Fireplex results
+  geom_point(aes(cell_line,logFC_Fireplex), fill = "red", shape = 23) +
+  facet_wrap(~miRNA, scales = "free") +
+  geom_hline(yintercept = 0, lty = 3) +
+  # change theme
+  theme_minimal() + 
+  theme(
+    legend.position = "bottom",
+    axis.line.y.left   = element_line(color = 'black'),
+    axis.ticks.y = element_line(), 
+    panel.grid  = element_blank(), 
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank()
+    )  +
+  scale_y_continuous(limits = c(-2.2,2.2),breaks = seq(-2,2, 0.5)) +
+  scale_color_manual(values = cols[seq(2,10,2)], name = "cell line") +
+  scale_fill_manual(values = cols[seq(2,10,2)], name = "cell line") +
+  ylab("log2-FC") 
+
+```
+![**Fig. 13: qPCR validation of Fireplex results (Fig 11. & Fig.12).** Data were normalized to the geometric mean of miR-16, sno44 and sno48 expression. Shown are log2FC of irradiated samples in relation to controls. One sample t-test was used for comparison of log2FC versus 0. Red squares show the mean log2FC of irradiated vs. control samples in the Fireplex analysis. For readability, miRNA expression with |log2FC| > 2 in the Fireplex analysis is indicated by arrows.  &#42;&#42;: p < 0.01, &#42;: p < 0.05. n = 4. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/miRNA_expression_qPCR_validation.png)
+
+Generally the qPCR results validate the Fireplex results as indicated by a similar direction of miRNA expression (when boxplots and red squares show common downregulation or upregulation, respectively). Contradictory results are present for miRNA-7-5p in SCC-12 (Fireplex: upregulated qPCR: downregulated), for miR-126-3p in SCC-12 (Fireplex: not changed, qPCR: upregulated) and SCC-13 (Fireplex: upregulated, qPCR: downregulated), for miR-135b-5p in SCC-13 (Fireplex: upregulated, qPCR: not changed), for miR-146-5p in SCC-12 (Fireplex: upregulated, qPCR: downregulated) and SCC-13 (Fireplex: downregulated, qPCR: upregulated), for miR 200a-3p in SCL-II (Fireplex: upregulated, qPCR: downregulated) and for miR-424-5p in SCC-13 (Fireplex: upregulated, qPCR: downregulated) and SCL-II (Fireplex: upregulated, qPCR: not changed). The best overlap between Fireplex and qPCR result could be observed for miR-205-5p with the log2FC of the Fireplex analysis being within the data range covered by the boxplot for each cell line. Because of this consistent downregulation and the role of miR-205-5p in cancer progression and metastasis in various cancer entitities, the role of this miRNA was chosen to be further elucidated in the context of cSCC progression (see section 2). 
+
+##  1.5 UV sensitivity of cell lines
+
+As indicated in section 1.4.2 there were differences in the UV-responsiveness of different cell lines. This phenomenon was more thoroughly investigated in this section. To this end the absolute fold-change (to avoid negative and positive fold-changes cancelling out) between irradiated and control cells  of all miRNAs between was averaged for each cell line and compared (Fig. 14). 
+
+```{r}
+# convert log2-fold changes to absolute log2-fold changes
+dat_UV_sens <- folds %>% 
+  ungroup()%>% 
+  mutate(abslog2FC= abs(log2FC))
+```
+
+As the data was by definition not able to have negative values, non-normality was assumed and non-parametric tests were used for statistical testing of differences between groups. 
+
+```{r, message = FALSE}
+# Kruskal Wallis test to test if there are any differences beteen cell lines
+dat_UV_sens %>% 
+  kruskal_test(abslog2FC~cell_line)
+
+# Wilcoxon-Mann-Whitney U test to compare groups pairwise
+dat_UV_sens %>% 
+  dunn_test(abslog2FC~cell_line, p.adjust.method = "fdr")
+```
+
+```{r, eval = FALSE}
+# define position for jitter and text labels
+pos <- position_jitter(width = 0.05, seed = 2)
+
+# define labels to show the 3 most UV-responsive miRNAs
+labels <- dat_UV_sens %>% 
+  group_by(cell_line) %>%
+  top_n(3, abslog2FC) %>% 
+  mutate(label = miRNA)
+
+# merge data with labels
+dat_labelled <- left_join(dat_UV_sens,labels) %>%
+  mutate(label = ifelse(is.na(label), "", label))
+
+# plot
+# add errorbars
+plot_UV_sens <- dat_labelled %>% 
+  ggplot(aes(cell_line,abslog2FC)) +
+  stat_boxplot(
+    geom ='errorbar',
+    size=0.5,
+    width = 0.2
+  ) +
+  # add boxplot
+  geom_boxplot(
+    color = "black",
+    mapping = aes(x = cell_line,y = abslog2FC),
+    outlier.shape =NA,
+    width=0.4
+  ) +
+  # add points to display each individual miRNA
+  geom_jitter(
+    data =  filter(dat_labelled, label == ""),
+    mapping = aes(x = cell_line,y = abslog2FC),
+    width=0.1,
+    alpha=0.3
+  ) +
+  # label the top 3 changed miRNAs with reds
+  geom_jitter(
+    data =  filter(dat_labelled, label != ""),
+    mapping = aes(x = cell_line,y = abslog2FC, fill = "red"),
+    shape = 21, 
+    colour = "black",
+    position = pos
+  ) + 
+  # show text label of the top 3 changed miRNAs
+  geom_text_repel(
+    data =  filter(dat_labelled, label != ""),
+    mapping = aes(x = cell_line, y = abslog2FC, label = label),
+    size = 3,
+    position = pos
+  ) + 
+  theme_PhD(Legend=F) +
+  theme(axis.text.x = element_text(angle=90, vjust= 0.4, hjust= 1)) +
+  ylab("absolute log2-FC") +
+  scale_y_continuous(limits = c(0,3.3), breaks = seq(0,3,0.5))
+```
+![**Fig. 14: UV-sensitivity of cell lines.** The three most UV-responsive miRNAs are shown in red with name labels. n = 40. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/UV_sensitivity.png)
+
+
+SCC-12 and SCC-13 show significantly higher absolute log2FC indicating a higher UV-responsiveness of these cell lines. Although not significantly changed, SCL-II also shows higher UV-sensitivity than Met-1 and Met-4. There are minor differences between cell lines in respect to which miRNAs are altered the most after UV irradiation, however miR-503-5p, miR-146a-5p and miR-30a-3p exhibit the highest differences in almost all cell lines. The lower UV-response in Met-1 and Met-4 might be due to a functional p53 protein and better DNA damage response.
+
+# 2 miRNA expression in cSCC tissue
+
+To identify possible miRNAs with oncogenic function in cSCC which are induced by UV-radiation we compared tissue samples of patients with cSCC (n = 5) with skin biopsies of healthy donors from sun-exposed(n = 5) and sun-protected (n = 6) areas. Although there were no evident differences between sun-protected and sun-exposed skin the cSCC tissue was clearly separated in a hierarchical clustering analysis (Fig. 15A). Two distinct clusters showed miRNAs overexpressed in tumor tissue (Cluster 1A) and suppressed in tumor tissue (Cluster 4A). The miRNAs in Cluster 1A are well known onco-miRs which are overexpressed in various tumors. Genes targeted by all 3 miRNAs are shown in Fig. 15B. A pathway analysis conducted with the R package RBiomiRGS incorporating all known (experimentally validated) targets of the miRNA triplet revealed only one pathway (KEGG_AXON_GUIDANCE) to be overrepresented in the gene set (Fig. 15D). This is most likely due to the low number of miRNAs and therefore a low number of target genes. On the other hand the genes targeted by at least 7 miRNAs of downregulated miRNAs in cSCC tissue are shown in Fig. 15C and a pathway analysis revealed the activation of pathways like KEGG_ERBB_SIGNALING_PATHWAY or KEGG_MAPK_SIGNALING_PATHWAY indicating activation of growth related signaling pathways in tumor tissue. 
+
+A second pathway analysis tool (miRTargetlink 2.0) yielded similar results with even more tumor related pathways overrepresented in the gene set targeted by the miRNAs in Cluster 4A. On top of growth related pathways there are also other tumor associated pathways like KEGG_VEGF_SIGNALING_PATHWAY (angiogenesis) or KEGG_ADHERENS_JUNCTION and KEGG_FOCAL_ADHESION (migration) that were enriched (in the top 20) using this webtool. 
+In the top 20 enriched GO terms it was evident that the biological function of these miRNAs is closely related to the response to (UV) radiation and growth related signaling pathways. 
+
+In summary the miRNA expression between tumor tissue and skin (without differences between sun-exposed or sun-protected areas) is very distinct for certain miRNAs with a subset of downregulated miRNAs in tumor tissue involved in cell growth, cell migration, tumor progression and the response to UV radiation. This indicates that - although not altered in sun-exposed skin - these miRNAs are associated to a chronic and in the end failed response to genotoxic stress exerted by UV-radiation. 
+
+Taken together with the findings obtained *in vitro* there was only one miRNA that is downregulated in cSCC tissue as well as subsequent to chronic UV radiation in all 5 cell lines: miRNA-205. This miRNA might play a crucial role in the UV-induced carcinogenesis of cSCC. To examine the effects of miR-205 on a mechanistic level we performed *in vitro* knockdown experiments and investigated endpoints like cell growth, cell cylce distribution, apoptosis, migration, invasion as well as expression of prominent tumor associated genes targeted by miR-205.
+
+
+![**Fig. 15: miRNA expression in cSCC tissue compared to sun-exposed and sun-protected skin.** A: Hierarchical clustering analysis of differentially expressed miRNAs in cSCC tissue. B: Network analysis of miRNAs overexpressed in cSCC tissue. C: Network analysis of miRNAs suppressed in cSCC tissue. D: Pathway analysis miRNA targets shown in B generated with BiomiRGS. E: Pathway analysis of miRNA targets shown in C. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/tissue_cSCC_miRNas_pathway.png)
+
+# 3 Knockdown of miR-205-5p
+
+## 3.1 Testing transfection conditions
+
+To assess Knockdown efficiency, SCC-12 cells were seeded at 40.000 cells per well in a 24-well Plate, incubated for 24 h in standard cell culture conditions and transfected with different concentrations of antagomir-205 or a control oligo using the HiPerfect Transfection Reagent (Qiagen). Cells were harvested 24 h and 72 h after transfection, RNA was isolated and miR-205 expression was quantified via qPCR. The results are shown in figure 15. 
+
+
+```{r, eval = FALSE}
+# load and transform data
+dat_qPCR <- read_csv("Data/PhD_MB_qPCR_transfection_mir_205_20210427.csv")%>% 
+  rename(Name = Probenname) %>%
+  mutate(time = str_extract(.$Name, "\\d+h")) %>%
+  mutate(treatment = str_replace_all(.$Name, "_.+$","")) %>%
+  mutate(condition = str_extract(.$Name, "\\d+nM.+microL"))
+
+dat_mimic <- dat_qPCR %>% filter(type == "mimic")
+dat_antago <- dat_qPCR %>% filter(type == "antago")
+
+## antago mir 
+ddCT_antago <- get_ddCT(dat_antago, ID = "Name", group.ctrl = "time", ct.val = "mean_ct") %>%
+  mutate(condition = factor(condition, levels = c("5nM_1.5microL", "5nM_3microL", "10nM_3microL", "50nM_3microL")))
+
+ddCT_antago %>%
+  ggplot(aes(time, ddCT, fill = factor(condition))) +
+  geom_errorbar(stat = "summary", fun.data = "mean_sdl", fun.args = list(mult = 1),
+                  position = position_dodge(0.48), width = 0.25, size = 0.6)+
+  geom_bar(stat = "summary", fun = "mean",
+           color = "black", position = position_dodge(0.48),
+           mapping = aes(x = time,y = ddCT),
+           width=0.4
+  )  + 
+  geom_hline(yintercept= 0, lty = 2) +
+  theme_PhD(axis.text.size = 10) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),
+    strip.background = element_blank(),
+    legend.position = "none"
+  ) + 
+  scale_y_continuous(limits = c(-4,2), breaks = seq(-4,2,1)) +
+  scale_fill_brewer(palette = "Greys")
+```
+![**Fig. 16: Testing of different miR-205 Knockdown conditions.** Data were normalized to the geometric mean of miR-16, sno44 and sno48 expression. ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/Antago_miR-205_qPCR_conditions_legend.png)
+
+
+## 3.2 growth analysis
+
+![**Fig. 17: Title.** Text ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/.png)
+
+## 3.3 cell cycle distribution
+
+![**Fig. 18: Cell cycle distribution of miR-205 Knockdown and control transfected cells.** A: Cell cycle distribution of control transfected cells. B: Cell cycle distribution of cells transfected with antagomir-205. C: Barplot showing the percentage of G1, S and G2 phase in the differently treated cells at different timepoints.  ](https://raw.githubusercontent.com/MBender1992/PhD/Marc/Results/cell_cycle_distribution_combined.png)
+
+# 4 TGF beta
+
+The knockdown experiments with solely miR-205 did not show any differences in phenotypes of control or transfected cells, although miR-205 was stably downregulated. However target genes were only upregulated 24h post transfection and even showed downregulation 72h post transfection with a normalization of gene expression 144h post  transfection. This indicates a negative feedback mechanism that ensures cell homeostasis. Moreover it is known that cancer is orchestrated by a multitude of potentially carcinogenic events - each of its own not sufficient for tumorigenesis - which in sum lead to cancer formation and progression. We therefore speculated that miR-205 suppression alone is not sufficient to increase migration or invasion processes connected to EMT (which is a crucial process on the way to metastases). Indeed it was shown that miR-205 regulates EMT together with TGF-beta, where miR-205 suppresses EMT and TGF-beta induces EMT. Furthermore TGF-beta is upregulated following UV irradiation and also frequently upregulated in cSCC tumors. Therefore it is likely that overexpression of TGF-beta in co-operation with downregulation of miR-205 induces EMT in a synergistic process. 
+
+To test this hypothesis the different endpoint analysis of section 3 were repeated and two additional treatment options were examined. (control, TGFb+, miR-205-, TGFb+ und miR-205-)
+
+
+
+
+

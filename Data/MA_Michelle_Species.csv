@@ -1,0 +1,79 @@
+CODE;ALAE;REPROD;FOOD;SPEC;HABIT;HUMID;GK;FLYDYM;E1;E2;E3;E4;E5;E6;K1;K2;K3;K4;K5;K6;O1;O2;O3;O4;O5;O6
+Abapap;b;u;Prädator;Abax parallelepipedus;Eurytop;hygrophil;16-22;brachypter;;;;2;38;2;;;;;;;1;;;;3;110
+Agomue;m;F;omnivor;Agonum muelleri;Offenland;hygrophil;6.9-9.5;macropter;5;;;;;;1;;;;;1;;1;;;;
+Agosex;m;F;omnivor;Agonum sexpunctatum;Offenland;hygrophil;07. Okt;macropter;2;2;;;;;;;;;;;;;;;;
+Amaaen;m;F;omnivor;Amara aenea;Offenland;xerophil;6.2-8.8;macropter;38;9;65;;;;75;13;4;;;1;62;9;3;5;;
+Amaaul;m;SH;herbivor;Amara aulica;Offenland;xerophil;10.05.2015;macropter;1;;;;;;;;;;;;1;;;;;
+Amabif;m;SH;herbivor;Amara bifrons;Offenland;xerophil;5.3-7.5;macropter;9;;;;;;;;;;;;;;;;;
+Amacom;m;FS;omnivor;Amara communis;Offenland;hygrophil;07. Sep;macropter;;;9;1;1;;3;;;;3;;3;;;1;;
+Amacon;m;FS;omnivor;Amara convexior;Offenland;xerophil;07. Sep;macropter;;;3;;3;;;;1;;3;;;1;4;;;
+Amafam;m;F;herbivor;Amara familiaris;Offenland;xerophil;5.5-7.5;macropter;;;;;;;1;;;;;1;2;;8;;;
+Amalun;m;F;herbivor;Amara lunicollis;Offenland;xerophil;06.05.2009;macropter;;;1;;;;;5;;;;;;;2;;;
+Amaova;m;F;omnivor;Amara ovata;Offenland;xerophil;07.05.2010;macropter;;;;;;;;;2;;5;1;;;7;;;
+Amasim;m;F;herbivor;Amara similata;Offenland;xerophil;07.05.2010;macropter;1;;6;;;;1;;10;;20;2;3;;40;1;4;1
+Ancdor;m;F;Prädator;Anchomenus dorsalis;Offenland;xerophil;06. Aug;macropter;;;;;;;;;1;;;;4;;38;;119;1
+Anibin;m;F;omnivor;Anisodactylus binotatus;Eurytop;hygrophil;Sep 13;macropter;27;8;;;;;;;;;;;;;;;;
+Asafla;m;F;Prädator;Asaphidion flavipes ;Offenland;mesophil;04.04.2008;macropter;2;;;;;;;;;1;18;7;;;;;;
+Asasti;;;;Asaphidion stierlini;Offenland;xerophil;03.04.2002;macropter;2;;;;;;;;;;;;;;;;;
+Badbul;m;F;Prädator;Badister bullatus;Offenland;hygrophil;4.8-7.5;macropter;;;;;;;;;8;2;2;1;;1;9;4;6;3
+Badlac;m;F;kA;Badister lacertosus;Wald;hygrophil;05. Jul;macropter;1;;;;1;;;;;;;1;1;;1;;2;3
+Bembig;m;F;omnivor;Bembidion biguttatum;Offenland;hygrophil;3.5-4.5;macropter;;;;1;;;;;;;;;;;;;;
+Bemill;m;F;kA;Bembidion illigeri;Offenland;hygrophil;04.04.2009;macropter;1;;;;;;;;;;;;;;;;;
+Bemfem;m;F;Prädator;Bembidion femoratum;Offenland;xerophil;4.2-5.1;macropter;2;9;;;;;1;;;;;;;;;;;
+Bemlam;d/p;F;Prädator;Bembidion lampros;Eurytop;hygrophil;03. Apr;dimroph;14;2;2;;;;10;1;18;;;;;1;;;;
+Bemlun;m;F;Prädator;Bembidion lunulatum;Offenland;hygrophil;03.04.2001;macropter;1;1;;;;;;;;;;;;2;;;;
+Bemobt;d/p;F;omnivor;Bembidion obtusum;Offenland;mesophil;2.8-3.6;dimroph;;;;;;;;;;;;3;;;;;;
+Bempro;d/p;F;Prädator;Bembidion properans;Eurytop;hygrophil;3.5-4.5;dimroph;4;1;8;;;;3;;10;;1;1;;8;;;;
+Bemqua;m;F;Prädator;Bembidion quadrimaculatum;Eurytop;xerophil;2.8-3.5;macropter;2;4;;;;;;;;;;;;3;;;;
+Bemtet;d/p;F;Prädator;Bembidion tetracolum;Eurytop;hygrophil;4.9-6.1;dimroph;21;2;;;;;;;;;;;1;;;;;
+Bracre;m;F;Prädator;Brachinus crepitans;Offenland;xerophil;6.1-10.2;macropter;;;;;;;;1;;;;;15;;297;1;73;
+Calcin;d/p;S;kA;Calathus cinctus;Offenland;xerophil;06. Sep;dimroph;;1;;;;;;;;;;;;;;;;
+Calfus;d/p;S;Prädator;Calathus fuscipes;Offenland;xerophil;9-14.4;dimroph;;;;;;;5;2;;;1;;1;;;;;
+Calmel;d/p;S;Prädator;Calathus melanocephalus;Offenland;mesophil;06. Sep;dimroph;;;;;;;;;;;;;1;;;;;
+Calrot;d/p;S;Prädator;Calathus rotundicollis;Wald;mesophil;08.05.2011;dimroph;;;;;;;;;;1;9;8;;;;;;
+Carcor;b;S;Prädator;Carabus coriaceus;Eurytop;mesophil;30-40;brachypter;2;;2;15;25;22;;2;27;13;3;7;15;;5;21;50;76
+Carnem;b;F;Prädator;Carabus nemoralis;Eurytop;mesophil;18-28;brachypter;;;2;14;35;4;;5;6;11;33;47;6;;25;7;135;30
+Carpro;b;S;Prädator;Carabus problematicus;Wald;mesophil;18-30;brachypter;;;;;2;1;;;;;;;;;;;;
+Ciccam;m;F;Prädator;Cicindela campestris;Offenland;xerophil;10.05.2015;macropter;6;15;5;;;;;1;;;;;;1;;19;;
+Cichyb;m;F;Prädator;Cicindela hybrida;Offenland;xerophil;Okt 16;macropter;;7;;;;;;;;;;;;;;;;
+Clifos;d/p;F;kA;Clivina fossor;Offenland;hygrophil;05.06.2005;dimroph;;;;;;;;;1;;;;;;;;;
+Cyccar;b;S;Prädator;Cychrus caraboides;Wald;hygrophil;14-20;brachypter;;;;;;1;;;;;;;;;;;;
+Haraff;m;HF;omnivor;Harpalus affinis;Offenland;xerophil;09. Dez;macropter;11;10;;;;;2;;;;;;;;59;32;;
+Hardis;m;HF;herbivor;Harpalus distinguendus;Offenland;xerophil;08.11.2002;macropter;38;47;;;;;;;;;;;;;;;;
+Harlae;m;F;Prädator;Harpalus laevipes;Eurytop;mesophil;09.05.2012;macropter;;;;;;;;;;1;;;;;;;;
+Harlat;m;S;herbivor;Harpalus latus;Eurytop;xerophil;08. Nov;macropter;;;;;;;;;;;;;1;;2;;;
+Harlut;m;F;kA;Harpalus luteicornis;Eurytop;mesophil;06.07.2005;macropter;;;;;;;;;;;;;1;;2;;1;
+Harrub;m;SH;omnivor;Harpalus rubripes;Offenland;xerophil;08.11.2002;macropter;1;6;;;2;;9;6;2;1;;;;;4;;;
+Harruf;m;S;omnivor;Harpalus rufipes;Offenland;xerophil;10-16.7;macropter;;;;;;;;;;;;;2;;;;1;
+Hartar;m;F;herbivor;Harpalus tardus;Offenland;xerophil;07.08.2011;macropter;;1;;;;;1;;;;;;43;;73;;19;
+Leifer;d/p;S;Prädator;Leistus ferrugineus;Eurytop;mesophil;05.05.2008;dimroph;;;;;;;;;;2;;;;;;;;
+Leiful;m;S;Prädator;Leistus fulvibarbis;Offenland;hygrophil;06. Aug;macropter;;;;;;;;;;;;6;;;;;;
+Leiruf;d/p;S;Prädator;Leistus rufomarginatus;Wald;hygrophil;7.5-9.5;dimroph;;;;;;;;;;3;4;2;;;;;;
+Limass;m;F;Prädator;Limodromus assimilis;Wald;hygrophil;8.7-12.3;macropter;;;;11;;;;;;11;1;75;;;;;;1
+Lorpil;m;F;Prädator;Loricera pilicornis;Eurytop;hygrophil;06.08.2005;macropter;2;1;;;;;;;;;;1;;;;;;1
+Micmau;d/p;F;Prädator;Microlestes maurus;Offenland;xerophil;2.5-2.8;dimroph;;;;;;;;;;;;;2;10;14;3;;
+Micmin;d/p;F;Prädator;Microlestes cf. minutulus;Offenland;xerophil;03.03.2003;dimroph;;;;;;;1;;1;;;;24;51;22;3;;
+Nebbre;m;S;Prädator;Nebria brevicollis;Eurytop;hygrophil;Okt 14;macropter;170;102;1;5;48;;12;1;51;38;5;133;4;34;;13;3;36
+Notbig;d/p;FH;Prädator;Notiophilus biguttatus;Wald;mesophil;03.05.2006;dimroph;4;2;;;;;;;5;9;60;26;;3;;1;3;3
+Notpal;d/p;F;Prädator;Notiophilus palustris;Offenland;hygrophil;04. Jun;dimroph;2;;;;;;;;2;;5;;;;;;10;
+Notruf;d/p;F;Prädator;Notiophilus rufipes;Wald;xerophil;04.06.2005;dimroph;;1;;;;1;;;3;52;58;21;;1;2;1;;5
+Olirot;d/p;S;herbivor;Olisthopus rotundatus;Offenland;xerophil;06.07.2008;dimroph;;;;;;;;;;;;;;1;;;;
+Opharz;d/p;HF;herbivor;Ophonus azureus;Offenland;xerophil;06.02.2009;dimroph;;;;;;;;;;;;;20;;11;15;9;
+Ophlat;d/p;S;herbivor;Ophonus laticollis;Offenland;mesophil;08.05.2011;dimroph;;;;;;;;;;;;;;;;;1;
+Ophpun;m;H ;herbivor;Ophonus puncticollis;Offenland;xerophil;07.09.2005;macropter;;;;;;;;1;;;;;;;;;;
+Ophruf;m;F;herbivor;Ophonus rufibarbis;Offenland;mesophil;07.09.2005;macropter;;;;;;;;;;;;;;;;;9;
+Panbip;m;FS;;Panagaeus bipustulatus;Offenland;xerophil;6.5-7.5;macropter;;;;;;;;;2;;;1;;;;;;
+Poecup;m;F;Prädator;Poecilus cupreus;Offenland;hygrophil;11-13.5;macropter;34;15;1;;;;2;9;10;;1;1;8;7;5;4;1;1
+Poever;m;F;Prädator;Poecilus  versicolor ;Offenland;mesophil;10.5-12.5;macropter;4;3;;;;;;3;8;;;;7;;3;;3;
+Pteant;d/p;F;Prädator;Pterostichus anthracinus;Eurytop;hygrophil;09.05.2012;dimroph;;;;7;;;;;;;;;;;;;;
+Ptemad;b;S;omnivor;Pterostichus madidus;Eurytop;mesophil;13-18;brachypter;;;;;;;;;;;;;1;;;;;11
+Ptemel;d/p;S;Prädator;Pterostichus melanarius;Eurytop;hygrophil;Dez 19;dimroph;;;;;;;;;;;;4;;;;;;
+Ptenig;d/p;S;Prädator;Pterostichus niger;Wald;mesophil;15-21;dimroph;;;;18;1;;;;;;;;;;;;;
+Pteobt;m;F;Prädator;Pterostichus oblongopunctatus;Wald;mesophil;09.12.2006;macropter;;;;;32;1;;;;;;;;;;;;
+Ptestr;d/p;F;omnivor;Pterostichus strenuus;Eurytop;hygrophil;05.07.2002;dimroph;;;;8;1;;;;3;;;;;;;;;
+Ptever;d/p;F;omnivor;Pterostichus vernalis;Offenland;hygrophil;06.07.2005;dimroph;1;;;;;;;1;;;;;;;;;;
+Stemix;m;F;herbivor;Stenolophus mixtus;Eurytop;hygrophil;05. Jun;macropter;;;;;;;;;;;;;;1;;;;
+Steteu;m;F;kA;Stenolophus teutonus;Offenland;hygrophil;05.05.2007;macropter;1;;;;;;;;;;;;;;;;;
+Synfov;d/p;F;kA;Syntomus foveatus;Offenland;xerophil;3.1-3.8;dimroph;1;1;2;;;;3;5;2;;;;14;1;;;;
+Syntru;d/p;F;Prädator;Syntomus truncatellus;Offenland;xerophil;2.6-3.3;dimroph;1;;5;;;;;4;1;;;1;7;;7;;1;
+Trequa;d/p;S;Prädator;Trechus quadristriatus;Eurytop;mesophil;3.5-4.5;dimroph;;;1;;;;;;;;;;3;6;1;;;
